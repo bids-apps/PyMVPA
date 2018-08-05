@@ -6,7 +6,7 @@ For more information on PyMVPA, please visit http://www.pymvpa.org/
 ## Acknowledgements
 ## Usage
 This App has the following command line arguments:
-```bash
+```
 usage: run.py [-h] [-k TASK]
               [-c CONDITIONS_TO_CLASSIFY [CONDITIONS_TO_CLASSIFY ...]]
               [-p PARTICIPANT_LABEL [PARTICIPANT_LABEL ...]] [-l NOINFOLABEL]

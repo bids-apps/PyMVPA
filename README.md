@@ -6,7 +6,7 @@ For more information on PyMVPA, please visit http://www.pymvpa.org/
 ## Acknowledgements
 ## Usage
 This App has the following command line arguments:
-'''bash
+'''
 aa
 '''
 ## Special considerations

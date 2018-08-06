@@ -1,8 +1,10 @@
-# PyMVPA
-For more information on PyMVPA, please visit http://www.pymvpa.org/
+# PyMVPA BIDS App
+
 ## Description
 ## Documentation
+For more information on PyMVPA, please visit http://www.pymvpa.org/
 ## How to report errors
+For issues or questions, please post to the PyMVPA mailing list (http://www.pymvpa.org/support.html), the BIDS mailing list (https://groups.google.com/forum/#!forum/bids-discussion), or NeuroStars (https://neurostars.org/) with pymvpa tag
 ## Acknowledgements
 ## Usage
 This App has the following command line arguments:

@@ -5,7 +5,7 @@ MAINTAINER Sajjad Torabian <torabiansajjad@gmail.com>
 RUN apt-get update && \
     apt-get install -y python2.7 && \
     apt-get install -y aptitude && \
-    sudo aptitude install -y python-mvpa2
+    aptitude install -y python-mvpa2
 
 RUN mkdir -p /code
 

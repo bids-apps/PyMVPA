@@ -3,7 +3,9 @@ FROM bids/base_fsl
 MAINTAINER Sajjad Torabian <torabiansajjad@gmail.com>
 
 RUN apt-get update && \
-    apt-get install -y python2.7 && \
+    apt-get install -y python2.7
+
+RUN apt-get update && \
     apt-get install -y aptitude && \
     aptitude install -y python-mvpa2
 

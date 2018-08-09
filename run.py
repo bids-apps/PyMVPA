@@ -108,7 +108,7 @@ if args.analysis_level == "participant_prep":
     out_path=%s
     task=%s
     mkdir $out_path
-    chmod 777 $out_path
+    chmod -R 777 $out_path
     mkdir $out_path/masks
     sub_IDs="%s"
     for subjects in ${sub_IDs}; do

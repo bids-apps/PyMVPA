@@ -121,7 +121,6 @@ if args.analysis_level == "participant_prep":
             fslval $runs dim4 >> "$out_path/$subj_name/""$subj_name""_task-""$task""_dim4.txt"
         done
     done
-    chmod -R 777 $out_path
     '''
     my_bash_script = my_bash_script % (args.bids_dir, args.output_dir, args.task, ' '.join(subjects_to_analyze))
     run_script(my_bash_script)
@@ -371,3 +370,5 @@ elif args.analysis_level == "participant_test":
 
 
         subj_html.close()
+
+run_script('chmod -R 777 %s' % args.output_dir)

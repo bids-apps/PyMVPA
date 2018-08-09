@@ -108,7 +108,6 @@ if args.analysis_level == "participant_prep":
     out_path=%s
     task=%s
     mkdir $out_path
-    chmod -R 777 $out_path
     mkdir $out_path/masks
     sub_IDs="%s"
     for subjects in ${sub_IDs}; do
@@ -122,6 +121,7 @@ if args.analysis_level == "participant_prep":
             fslval $runs dim4 >> "$out_path/$subj_name/""$subj_name""_task-""$task""_dim4.txt"
         done
     done
+    chmod -R 777 $out_path
     '''
     my_bash_script = my_bash_script % (args.bids_dir, args.output_dir, args.task, ' '.join(subjects_to_analyze))
     run_script(my_bash_script)

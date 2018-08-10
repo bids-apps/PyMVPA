@@ -1,9 +1,28 @@
 # PyMVPA BIDS App
 ## Description
 This pipeline takes fMRI data and generates ROI based MultiVariate Pattern Analysis (MVPA) outputs using functionality from FSL and PyMVPA. Before running PyMVPA BIDS, you need to preprocess data using fmriprep. When you're ready, run the app at its two analysis levels in order:
-- **participant_prep**: For each subject, takes preprocessed functional runs from fmriprep under derivatives, and concatenates them into single NIfTI files (e.g. sub-1_task-objectviewing_bold_space_preproc.nii.gz) that will be placed in separate subject folders under the output folder (e.g. /bids_dataset/derivatives/pymvpa) specified by the user. It also creates a text file (e.g. sub-1_task-objectviewing_dim4.txt) next to each NIfTI for each subject which is a list containing all the runs' number of time points. These two files will then be used in participant_test. In addition, an empty "masks" folder is created in this step which should be filled with NIfTI ROIs that you want MVPA to run on. If you don't have your masks already and want to know how to generate one, please read the "Generating Masks" section below.
+- **participant_prep**: For each subject, takes preprocessed functional runs from fmriprep under derivatives, and concatenates them into single NIfTI files (e.g. sub-1_task-objectviewing_bold_space_preproc.nii.gz) that will be placed in separate subject folders under the output folder (e.g. /bids_dataset/derivatives/pymvpa) specified by the user. It also creates a text file (e.g. sub-1_task-objectviewing_dim4.txt) next to each NIfTI for each subject which is a list containing all the runs' number of time points. These two files will then be used in participant_test. In addition, an empty "masks" folder under the output folder (in our example: /bids_dataset/derivatives/pymvpa/masks) is created in this step which before getting to participant_test should be filled with NIfTI ROIs that you want MVPA to run on. If you don't have your masks already and want to know how to generate one, please read the "Generating Masks in FSL" section below.
 - **participant_test**:
-### Generating Masks
+### Generating Masks in FSL
+When you create a mask in FSL using 1mm or 2mm MNI atlases,
+http://andysbrainblog.blogspot.com/2012/11/creating-masks-in-fsl.html (src_img)
+you need to reslice it to 3.5 x 3.75 x 3.75 resolution to match fmriprep output. Here is our way of doing this:
+Open a terminal and start IPython:
+```
+ipython
+```
+In IPython:
+```
+from nilearn.image import resample_to_img
+import nibabel as nib
+```
+Next, it is time to load your source (image to resample) and target (reference image taken for resampling) images:
+```
+src_img = nib.load('Temporal_Occipital_Fusiform_Cortex.nii')
+trgt_img = nib.load('sub-1_task-objectviewing_run-01_bold_space-MNI152NLin2009cAsym_preproc.nii') # this could be any of the preprocessed NIfTIs
+output = resample_to_img(src_img, trgt_img, interpolation='nearest')
+output.to_filename('Temporal_Occipital_Fusiform_Cortex.nii') # used the same name to replace
+```
 ## Documentation
 For more information on PyMVPA, please visit http://www.pymvpa.org/
 ## How to report errors

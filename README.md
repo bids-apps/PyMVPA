@@ -120,7 +120,7 @@ docker run -i --rm \
 	sajjadtorabian/pymvpa \
 	/bids_dataset /outputs participant_prep -k objectviewing -p 1 2
 ```
-To run it in participant_test level mode:
+To run it in participant_test level mode (should use the same output folder as above):
 ```
 docker run -i --rm \
 	-v /Users/Sajjad/Visual_object_recognition:/bids_dataset:ro \

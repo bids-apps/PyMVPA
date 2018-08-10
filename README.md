@@ -30,6 +30,7 @@ For more information on PyMVPA, please visit http://www.pymvpa.org/, or look int
 ## How to report errors
 For issues or questions, please post to the PyMVPA mailing list (http://www.pymvpa.org/support.html), the BIDS mailing list (https://groups.google.com/forum/#!forum/bids-discussion), or NeuroStars (https://neurostars.org/) with pymvpa tag
 ## Acknowledgements
+https://zenodo.org/badge/143604475.svg
 ## Usage
 This App has the following command line arguments:
 ```

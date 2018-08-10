@@ -1,5 +1,5 @@
 # PyMVPA BIDS App
-This pipeline is developed by Sajjad Torabian at Stanford University for use at the Center for Reproducible Neuroscience (CRN), as well as for open-source software distribution.  
+This pipeline is developed by Sajjad Torabian at Stanford University for use at the Center for Reproducible Neuroscience (CRN), as well as for open-source software distribution.    
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1343531.svg)](https://doi.org/10.5281/zenodo.1343531)
 ## Description
 This pipeline takes fMRI data and generates ROI based MultiVariate Pattern Analysis (MVPA) outputs (detailed classification results + visualized patterns) using functionality from FSL and PyMVPA. Before running PyMVPA BIDS, you need to preprocess data using fmriprep. When you're ready, run the app at its two analysis levels in order:

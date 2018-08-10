@@ -23,6 +23,8 @@ trgt_img = nib.load('sub-1_task-objectviewing_run-01_bold_space-MNI152NLin2009cA
 output = resample_to_img(src_img, trgt_img, interpolation='nearest')
 output.to_filename('Temporal_Occipital_Fusiform_Cortex.nii') # used the same name to replace
 ```
+### More on MVPA
+Usually at least 8 runs is needed for MVPA analysis. You may also have two really long runs with long rest periods in the middle so that each run can be cut into pieces. The important point is that you need to make sure the chunks remain independent, or analyze data in a way to make them independent! Also, the number of data points for conditions should be about the same.
 ## Documentation
 For more information on PyMVPA, please visit http://www.pymvpa.org/, or look into the "Usage" section and comments inside run.py!
 ## How to report errors
@@ -129,3 +131,4 @@ docker run -i --rm \
 	/bids_dataset /outputs participant_test -k objectviewing -c face house -p 1 2 -d -z
 ```
 ## Special considerations
+Note that the app concatenates functional runs into a single NIfTI for each subject (in participant_prep) which is in the order of GB and will then be fed into participant_test. So make sure your RAM is ready for that!

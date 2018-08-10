@@ -4,13 +4,12 @@ This pipeline is developed by Sajjad Torabian at Stanford University for use at 
 ## Description
 This pipeline takes fMRI data and generates ROI based MultiVariate Pattern Analysis (MVPA) outputs (detailed classification results + visualized patterns) using functionality from FSL and PyMVPA. Before running PyMVPA BIDS, you need to preprocess data using fmriprep. When you're ready, run the app at its two analysis levels in order:
 - **participant_prep**: For each subject, takes preprocessed functional runs from fmriprep under derivatives, and concatenates them into single NIfTI files (e.g. sub-1_task-objectviewing_bold_space_preproc.nii.gz) that will be placed in separate subject folders under the output folder (e.g. /bids_dataset/derivatives/pymvpa) specified by the user. It also creates a text file (e.g. sub-1_task-objectviewing_dim4.txt) next to each NIfTI for each subject which is a list containing all the runs' number of time points.<br /><br />
-These two files will then be used in participant_test. In addition, an empty "masks" folder under the output folder (in our example: /bids_dataset/derivatives/pymvpa/masks) is created in this step which before getting to participant_test should be filled with NIfTI ROIs that you want MVPA to run on. If you don't have your masks already and want to know how to generate one, please read the "Generating Masks in FSL" section below.
+These two files will then be used in participant_test. In addition, an empty "masks" folder under the output folder (in our example: /bids_dataset/derivatives/pymvpa/masks) is created in this step which before getting to participant_test should be filled with NIfTI ROIs that you want MVPA to run on. If you don't have your masks already and want to know how to generate one, please read the "Generating Masks in FSL" section below.<br />
 - **participant_test**: For each subject, iterates through all the ROIs inside the "masks" folder and performs SVM classification over HRF modeling of specified conditions. It generates HTML outputs containing detailed classification results, plus visualized patterns (e.g. /bids_dataset/derivatives/pymvpa/sub-1/sub-1_task-objectviewing_Occipital_Fusiform_Gyrus_face_house_pattern.nii.gz).
 ### Generating Masks in FSL
 When you create a mask in FSL using 1mm or 2mm MNI atlases,
 http://andysbrainblog.blogspot.com/2012/11/creating-masks-in-fsl.html (src_img)
-you need to reslice it to 3.5 x 3.75 x 3.75 resolution to match fmriprep output. Here is our way of doing this:  
-  
+you need to reslice it to 3.5 x 3.75 x 3.75 resolution to match fmriprep output. Here is our way of doing this:<br /><br />
 Open a terminal and start IPython:
 ```
 ipython
@@ -28,17 +27,15 @@ output = resample_to_img(src_img, trgt_img, interpolation='nearest')
 output.to_filename('Temporal_Occipital_Fusiform_Cortex.nii') # used the same name to replace
 ```
 ### More on MVPA
-Usually at least 8 runs is needed for MVPA analysis. You may also have two really long runs with long rest periods in the middle so that each run can be cut into pieces. The important point is that you need to make sure the chunks remain independent, or analyze data in a way to make them independent!  
-  
+Usually at least 8 runs is needed for MVPA analysis. You may also have two really long runs with long rest periods in the middle so that each run can be cut into pieces. The important point is that you need to make sure the chunks remain independent, or analyze data in a way to make them independent!<br /><br />
 Also, the number of data points for conditions should be about the same.
 ## Documentation
 For more information on PyMVPA, please visit http://www.pymvpa.org/, or look into the "Usage" section and comments inside run.py!
 ## How to report errors
 For issues or questions, please post to the PyMVPA mailing list (http://www.pymvpa.org/support.html), the BIDS mailing list (https://groups.google.com/forum/#!forum/bids-discussion), or NeuroStars (https://neurostars.org/) with pymvpa tag
 ## Acknowledgements
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1343531.svg)](https://doi.org/10.5281/zenodo.1343531)  
-  
-Please cite as:
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1343531.svg)](https://doi.org/10.5281/zenodo.1343531)<br /><br />
+Please cite as:<br /><br />
 sajjadtorabian. (2018, August 10). sajjadtorabian/PyMVPA: PyMVPA BIDS App version v1.0.0 (Version v1.0.0). Zenodo.
 http://doi.org/10.5281/zenodo.1343531
 ## Usage

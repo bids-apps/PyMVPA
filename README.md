@@ -9,7 +9,7 @@ This pipeline takes fMRI data and generates ROI based MultiVariate Pattern Analy
 ### Generating Masks in FSL
 When you create a mask in FSL using 1mm or 2mm MNI atlases,
 http://andysbrainblog.blogspot.com/2012/11/creating-masks-in-fsl.html (src_img)
-you need to reslice it to 3.5 x 3.75 x 3.75 resolution to match fmriprep output. Here is our way of doing this:
+you need to reslice it to 3.5 x 3.75 x 3.75 resolution to match fmriprep output. Here is our way of doing this:  
 Open a terminal and start IPython:
 ```
 ipython
@@ -27,7 +27,8 @@ output = resample_to_img(src_img, trgt_img, interpolation='nearest')
 output.to_filename('Temporal_Occipital_Fusiform_Cortex.nii') # used the same name to replace
 ```
 ### More on MVPA
-Usually at least 8 runs is needed for MVPA analysis. You may also have two really long runs with long rest periods in the middle so that each run can be cut into pieces. The important point is that you need to make sure the chunks remain independent, or analyze data in a way to make them independent! Also, the number of data points for conditions should be about the same.
+Usually at least 8 runs is needed for MVPA analysis. You may also have two really long runs with long rest periods in the middle so that each run can be cut into pieces. The important point is that you need to make sure the chunks remain independent, or analyze data in a way to make them independent!  
+Also, the number of data points for conditions should be about the same.
 ## Documentation
 For more information on PyMVPA, please visit http://www.pymvpa.org/, or look into the "Usage" section and comments inside run.py!
 ## How to report errors

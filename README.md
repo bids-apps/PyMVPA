@@ -2,7 +2,7 @@
 ## Description
 This pipeline takes fMRI data and generates ROI based MultiVariate Pattern Analysis (MVPA) outputs (detailed classification results + visualized patterns) using functionality from FSL and PyMVPA. Before running PyMVPA BIDS, you need to preprocess data using fmriprep. When you're ready, run the app at its two analysis levels in order:
 - **participant_prep**: For each subject, takes preprocessed functional runs from fmriprep under derivatives, and concatenates them into single NIfTI files (e.g. sub-1_task-objectviewing_bold_space_preproc.nii.gz) that will be placed in separate subject folders under the output folder (e.g. /bids_dataset/derivatives/pymvpa) specified by the user. It also creates a text file (e.g. sub-1_task-objectviewing_dim4.txt) next to each NIfTI for each subject which is a list containing all the runs' number of time points. These two files will then be used in participant_test. In addition, an empty "masks" folder under the output folder (in our example: /bids_dataset/derivatives/pymvpa/masks) is created in this step which before getting to participant_test should be filled with NIfTI ROIs that you want MVPA to run on. If you don't have your masks already and want to know how to generate one, please read the "Generating Masks in FSL" section below.
-- **participant_test**: For each subject, iterates through all the ROIs inside the "masks" folder and performs classification on the specified conditions. It generates HTML outputs containing detailed classification results, plus visualized patterns (e.g. /bids_dataset/derivatives/pymvpa/sub-1/sub-1_task-objectviewing_Occipital_Fusiform_Gyrus_face_house_pattern.nii.gz).
+- **participant_test**: For each subject, iterates through all the ROIs inside the "masks" folder and performs SVM classification over HRF modeling of specified conditions. It generates HTML outputs containing detailed classification results, plus visualized patterns (e.g. /bids_dataset/derivatives/pymvpa/sub-1/sub-1_task-objectviewing_Occipital_Fusiform_Gyrus_face_house_pattern.nii.gz).
 ### Generating Masks in FSL
 When you create a mask in FSL using 1mm or 2mm MNI atlases,
 http://andysbrainblog.blogspot.com/2012/11/creating-masks-in-fsl.html (src_img)
@@ -24,7 +24,7 @@ output = resample_to_img(src_img, trgt_img, interpolation='nearest')
 output.to_filename('Temporal_Occipital_Fusiform_Cortex.nii') # used the same name to replace
 ```
 ## Documentation
-For more information on PyMVPA, please visit http://www.pymvpa.org/
+For more information on PyMVPA, please visit http://www.pymvpa.org/, or look into the "Usage" section and comments inside run.py!
 ## How to report errors
 For issues or questions, please post to the PyMVPA mailing list (http://www.pymvpa.org/support.html), the BIDS mailing list (https://groups.google.com/forum/#!forum/bids-discussion), or NeuroStars (https://neurostars.org/) with pymvpa tag
 ## Acknowledgements
@@ -111,5 +111,21 @@ optional arguments:
   --skip_bids_validator
                         Whether or not to perform BIDS dataset validation
   -v, --version         show program's version number and exit
+```
+To run it in participant_prep level mode (for participants 1 and 2):
+```
+docker run -i --rm \
+	-v /Users/Sajjad/Visual_object_recognition:/bids_dataset:ro \
+	-v /Users/Sajjad/Visual_object_recognition/derivatives/pymvpa:/outputs \
+	sajjadtorabian/pymvpa \
+	/bids_dataset /outputs participant_prep -k objectviewing -p 1 2
+```
+To run it in participant_test level mode:
+```
+docker run -i --rm \
+	-v /Users/Sajjad/Visual_object_recognition:/bids_dataset:ro \
+	-v /Users/Sajjad/Visual_object_recognition/derivatives/pymvpa:/outputs \
+	sajjadtorabian/pymvpa \
+	/bids_dataset /outputs participant_test -k objectviewing -c face house -p 1 2 -d -z
 ```
 ## Special considerations

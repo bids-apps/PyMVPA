@@ -127,7 +127,7 @@ To run it in participant_prep level mode (for participants 1 and 2):
 docker run -i --rm \
 	-v /Users/Sajjad/Visual_object_recognition:/bids_dataset:ro \
 	-v /Users/Sajjad/Visual_object_recognition/derivatives/pymvpa:/outputs \
-	sajjadtorabian/pymvpa \
+	bids/pymvpa \
 	/bids_dataset /outputs participant_prep -k objectviewing -p 1 2
 ```
 To run it in participant_test level mode (should use the same output folder as above):
@@ -135,7 +135,7 @@ To run it in participant_test level mode (should use the same output folder as a
 docker run -i --rm \
 	-v /Users/Sajjad/Visual_object_recognition:/bids_dataset:ro \
 	-v /Users/Sajjad/Visual_object_recognition/derivatives/pymvpa:/outputs \
-	sajjadtorabian/pymvpa \
+	bids/pymvpa \
 	/bids_dataset /outputs participant_test -k objectviewing -c face house -p 1 2 -d -z
 ```
 ## Special considerations

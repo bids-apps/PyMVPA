@@ -7,8 +7,7 @@ RUN apt-get update && \
                     python2.7
 
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-                    python-mvpa2
+    apt-get install -y python-mvpa2
 
 RUN mkdir -p /code
 

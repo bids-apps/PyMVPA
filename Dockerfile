@@ -7,9 +7,9 @@ RUN apt-get update && \
                     python2.7
 
 RUN apt-get update && \
-    apt-get install -y python-mvpa2 && \
     apt-get remove --purge fuse && \
-    apt-get remove --purge python-fuse
+    apt-get remove --purge python-fuse && \
+    apt-get install -y python-mvpa2
 
 RUN mkdir -p /code
 

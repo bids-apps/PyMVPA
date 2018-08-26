@@ -79,7 +79,7 @@ parser.add_argument('-t', '--nfold_partitioner', help='When performing cross-val
 parser.add_argument('--skip_bids_validator', help='Whether or not to perform BIDS dataset validation',
                    action='store_true')
 parser.add_argument('-v', '--version', action='version',
-                    version='BIDS-App example version {}'.format(__version__))
+                    version='PyMVPA BIDS-App Version {}'.format(__version__))
 
 
 args = parser.parse_args()

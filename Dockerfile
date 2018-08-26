@@ -8,12 +8,12 @@ RUN sudo apt-get update && \
     #apt-get install fuse
     sudo apt-get install -y --no-install-recommends \
                     python2.7 && \
-    sudo apt-get remove -f -y --purge fuse && \
+    sudo apt-get remove -f -y --purge fuse
     #sudo apt-get remove -f -y --purge python-fuse
 
 RUN sudo apt-get update && \
     sudo apt-get install -y python-mvpa2 && \
-    sudo apt-get remove -f -y --purge fuse && \
+    sudo apt-get remove -f -y --purge fuse
     #sudo apt-get remove -f -y --purge python-fuse
 
 RUN mkdir -p /code

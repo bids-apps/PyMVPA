@@ -2,14 +2,14 @@ FROM bids/base_fsl
 
 MAINTAINER Sajjad Torabian <torabiansajjad@gmail.com>
 
-RUN sudo apt-get update && \
-    sudo apt-get install -y --no-install-recommends python2.7
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends python2.7
 
-RUN sudo apt-get update && \
+RUN apt-get update && \
     mkdir /dev/fuse && \
     chmod 777 /dev/fuse && \
-    sudo apt-get install -y python-mvpa2 && \
-    sudo apt-get remove -f -y --purge fuse
+    apt-get install -y python-mvpa2 && \
+    apt-get remove -f -y --purge fuse
 
 RUN mkdir -p /code
 

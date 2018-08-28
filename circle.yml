@@ -36,6 +36,7 @@ deployment:
       - echo $DOCKER_PASS
       - echo $DOCKER_EMAIL
       - echo $DOCKER_USER
+      - echo $CIRCLE_TAG
       - echo ${CIRCLE_PROJECT_REPONAME,,}
       - if [[ -n "$DOCKER_PASS" ]]; then docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASS && docker push bids/${CIRCLE_PROJECT_REPONAME,,}:latest; fi :
           timeout: 21600

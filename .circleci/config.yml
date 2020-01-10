@@ -24,7 +24,7 @@ jobs:
   test:
     machine:
       image: circleci/classic:latest
-    # working_directory: ~/data
+      working_directory: ~/data
     steps:
       - run:
           command: docker run -ti --rm --read-only -v /tmp:/tmp -v /var/tmp:/var/tmp -v ${HOME}/data/ds105:/bids_dataset bids/${CIRCLE_PROJECT_REPONAME,,} --version
@@ -49,19 +49,10 @@ workflows:
   version: 2
   build-test-deploy:
     jobs:
-      - build:
-          #filters:
-            #tags:
-              #only: /.*/
+      - build
       - test:
           requires:
             - build
-          filters:
-            tags:
-              only: /.*/
       - deploy:
           requires:
             - test
-          filters:
-            tags:
-              only: /.*/

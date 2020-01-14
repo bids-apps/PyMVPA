@@ -47,10 +47,10 @@ jobs:
             #if [[ -n "$DOCKER_PASS" ]]; then docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASS && docker tag bids/${CIRCLE_PROJECT_REPONAME,,} bids/${CIRCLE_PROJECT_REPONAME,,}:$CIRCLE_TAG && docker push bids/${CIRCLE_PROJECT_REPONAME,,}:$CIRCLE_TAG; fi
             if [[ "${CIRCLE_BRANCH}" == "master" && -n "${DOCKER_PASS}" ]]; then
               docker login -u ${DOCKER_USER} -p ${DOCKER_PASS}
-              docker push bids/${CIRCLE_PROJECT_REPONAME}:latest
+              docker push bids/pymvpa:latest
               if [[ -n "${CIRCLE_TAG}" ]]; then
-                docker tag bids/${CIRCLE_PROJECT_REPONAME} bids/${CIRCLE_PROJECT_REPONAME}:${CIRCLE_TAG}
-                docker push bids/${CIRCLE_PROJECT_REPONAME}:${CIRCLE_TAG};
+                docker tag bids/pymvpa bids/pymvpa:${CIRCLE_TAG}
+                docker push bids/pymvpa:${CIRCLE_TAG};
               fi
             fi
 workflows:

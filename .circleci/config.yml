@@ -12,8 +12,7 @@ jobs:
       - run: if [[ -e ~/docker/image.tar ]]; then docker load -i ~/docker/image.tar; fi
       - run: git describe --tags --always > version
       - run:
-          command: docker build -t bids/pymvpa \
-          -t bids/pymvpa:latest .
+          command: docker build -t bids/pymvpa -t bids/pymvpa:latest .
       - run: mkdir -p ~/docker; docker save "bids/${CIRCLE_PROJECT_REPONAME,,}" > ~/docker/image.tar
       - run: mkdir -p ${HOME}/outputs
       - save_cache:

@@ -36,6 +36,7 @@ jobs:
   deploy:
     machine:
       image: circleci/classic:latest
+      working_directory: ~/docker
     steps:
       - run:
           command: |

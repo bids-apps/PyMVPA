@@ -36,6 +36,9 @@ jobs:
       image: circleci/classic:latest
     steps:
       #- attach_workspace:
+      - restore_cache:
+          keys:
+            - my_cache
       - run:
           command: |
             if [ -n "$DOCKER_PASS" ]; then echo "PASSED";fi

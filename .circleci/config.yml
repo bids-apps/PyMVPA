@@ -48,8 +48,8 @@ jobs:
               docker login -u ${DOCKER_USER} -p ${DOCKER_PASS}
               docker push bids/pymvpa:latest
               if [[ -n "${CIRCLE_TAG}" ]]; then
-                docker tag bids/pymvpa bids/pymvpa:${CIRCLE_TAG}
-                docker push bids/pymvpa:${CIRCLE_TAG};
+                docker tag bids/pymvpa bids/pymvpa:latest
+                docker push bids/pymvpa:latest;
               fi
             fi
 workflows:

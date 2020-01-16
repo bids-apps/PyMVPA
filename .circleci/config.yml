@@ -12,7 +12,7 @@ jobs:
       - run: if [[ -e ~/docker/image.tar ]]; then docker load -i ~/docker/image.tar; fi
       - run: git describe --tags --always > version
       - run:
-          command: docker build -t bids/pymvpa -t bids/pymvpa:latest .
+          command: docker build -t bids/pymvpa:latest .
       - run: mkdir -p ~/docker; docker save "bids/${CIRCLE_PROJECT_REPONAME,,}" > ~/docker/image.tar
       - run: mkdir -p ${HOME}/outputs
       - save_cache:
@@ -27,15 +27,15 @@ jobs:
     steps:
       - run:
           command: docker run -ti --rm --read-only -v /tmp:/tmp -v /var/tmp:/var/tmp -v ${HOME}/data/ds105:/bids_dataset bids/${CIRCLE_PROJECT_REPONAME,,} --version
-      - run:
-          command: docker run -ti --rm --read-only -v /tmp:/tmp -v /var/tmp:/var/tmp -v ${HOME}/data/ds105:/bids_dataset -v ${HOME}/outputs:/outputs bids/${CIRCLE_PROJECT_REPONAME,,} /bids_dataset /outputs participant_prep -k objectviewing -p 1 2
-      - run:
-          command: docker run -ti --rm --read-only -v /tmp:/tmp -v /var/tmp:/var/tmp -v ${HOME}/data/ds105:/bids_dataset -v ${HOME}/outputs:/outputs bids/${CIRCLE_PROJECT_REPONAME,,} /bids_dataset /outputs participant_test -k objectviewing -c face house -p 1 2 -d -z
+      #- run:
+          #command: docker run -ti --rm --read-only -v /tmp:/tmp -v /var/tmp:/var/tmp -v ${HOME}/data/ds105:/bids_dataset -v ${HOME}/outputs:/outputs bids/${CIRCLE_PROJECT_REPONAME,,} /bids_dataset /outputs participant_prep -k objectviewing -p 1 2
+      #- run:
+          #command: docker run -ti --rm --read-only -v /tmp:/tmp -v /var/tmp:/var/tmp -v ${HOME}/data/ds105:/bids_dataset -v ${HOME}/outputs:/outputs bids/${CIRCLE_PROJECT_REPONAME,,} /bids_dataset /outputs participant_test -k objectviewing -c face house -p 1 2 -d -z
   deploy:
     machine:
       image: circleci/classic:latest
-      working_directory: ~/docker
     steps:
+      #- attach_workspace:
       - run:
           command: |
             if [ -n "$DOCKER_PASS" ]; then echo "PASSED";fi

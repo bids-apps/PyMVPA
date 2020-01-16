@@ -13,7 +13,7 @@ jobs:
       - run: git describe --tags --always > version
       - run:
           command: docker build -t bids/pymvpa:latest .
-      - run: mkdir -p ~/docker; docker save "bids/${CIRCLE_PROJECT_REPONAME,,}" > ~/docker/image.tar
+      - run: mkdir -p ~/docker; docker save "bids/${CIRCLE_PROJECT_REPONAME,,}:latest" > ~/docker/image.tar
       - run: mkdir -p ${HOME}/outputs
       - save_cache:
           key: my_cache

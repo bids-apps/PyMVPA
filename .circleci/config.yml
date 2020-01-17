@@ -30,14 +30,15 @@ jobs:
             - "~/docker"
             - "~/data"
       - persist_to_workspace:
-          root: ~/docker
           paths:
-            - image.tar
+            - ~/data/ds105
+            - ~/docker/image.tar
   test:
     machine:
       image: circleci/classic:latest
-      working_directory: ~/data
     steps:
+      - attach_workspace:
+          at: ~/data
       - run:
           command: |
             docker run -ti --rm --read-only -v /tmp:/tmp -v /var/tmp:/var/tmp -v ${HOME}/data/ds105:/bids_dataset bids/${CIRCLE_PROJECT_REPONAME,,} --version

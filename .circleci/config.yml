@@ -11,8 +11,8 @@ jobs:
       - run:
           name: Get Data and Extract
           command: |
-            if [[ ! -d ~/data/ds105 ]]; then
-              echo "Doesn't exist!"
+            if [[ -d ~/data/ds105 ]]; then
+              echo "Exists!"
               wget -c -O ${HOME}/ds105.tar "https://files.osf.io/v1/resources/653ew/providers/osfstorage/5b781237410f920018e5a4fc" && \
               mkdir -p ${HOME}/data && tar xf ${HOME}/ds105.tar -C ${HOME}/data;
             fi

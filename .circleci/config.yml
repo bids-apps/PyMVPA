@@ -30,9 +30,10 @@ jobs:
             - "~/docker"
             - "~/data"
       - persist_to_workspace:
+          root: ${HOME}
           paths:
-            - ~/data/ds105
-            - ~/docker/image.tar
+            - data/ds105
+            - docker/image.tar
   test:
     machine:
       image: circleci/classic:latest

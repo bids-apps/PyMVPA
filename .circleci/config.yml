@@ -8,13 +8,22 @@ jobs:
       - restore_cache:
           keys:
             - my_cache
-      - run: if [[ ! -d ~/data/ds105 ]]; then wget -c -O ${HOME}/ds105.tar "https://files.osf.io/v1/resources/653ew/providers/osfstorage/5b781237410f920018e5a4fc" && mkdir -p ${HOME}/data && tar xf ${HOME}/ds105.tar -C ${HOME}/data; fi
-      - run: if [[ -e ~/docker/image.tar ]]; then docker load -i ~/docker/image.tar; fi
-      - run: git describe --tags --always > version
       - run:
-          command: docker build -t bids/pymvpa:latest .
-      - run: mkdir -p ~/docker; docker save "bids/${CIRCLE_PROJECT_REPONAME,,}:latest" > ~/docker/image.tar
-      - run: mkdir -p ${HOME}/outputs
+          name: Get Data and Extract
+          command: |
+            if [[ ! -d ~/data/ds105 ]]; then
+              echo Doesn't exist!
+              wget -c -O ${HOME}/ds105.tar "https://files.osf.io/v1/resources/653ew/providers/osfstorage/5b781237410f920018e5a4fc" && \
+              mkdir -p ${HOME}/data && tar xf ${HOME}/ds105.tar -C ${HOME}/data;
+            fi
+      - run:
+          command: |
+            if [[ -e ~/docker/image.tar ]]; then docker load -i ~/docker/image.tar; fi
+            git describe --tags --always > version
+            docker build -t bids/pymvpa:latest .
+            mkdir -p ~/docker
+            docker save "bids/${CIRCLE_PROJECT_REPONAME,,}:latest" > ~/docker/image.tar
+            mkdir -p ${HOME}/outputs
       - save_cache:
           key: my_cache
           paths:
@@ -30,11 +39,10 @@ jobs:
       working_directory: ~/data
     steps:
       - run:
-          command: docker run -ti --rm --read-only -v /tmp:/tmp -v /var/tmp:/var/tmp -v ${HOME}/data/ds105:/bids_dataset bids/${CIRCLE_PROJECT_REPONAME,,} --version
-      #- run:
-          #command: docker run -ti --rm --read-only -v /tmp:/tmp -v /var/tmp:/var/tmp -v ${HOME}/data/ds105:/bids_dataset -v ${HOME}/outputs:/outputs bids/${CIRCLE_PROJECT_REPONAME,,} /bids_dataset /outputs participant_prep -k objectviewing -p 1 2
-      #- run:
-          #command: docker run -ti --rm --read-only -v /tmp:/tmp -v /var/tmp:/var/tmp -v ${HOME}/data/ds105:/bids_dataset -v ${HOME}/outputs:/outputs bids/${CIRCLE_PROJECT_REPONAME,,} /bids_dataset /outputs participant_test -k objectviewing -c face house -p 1 2 -d -z
+          command: |
+            docker run -ti --rm --read-only -v /tmp:/tmp -v /var/tmp:/var/tmp -v ${HOME}/data/ds105:/bids_dataset bids/${CIRCLE_PROJECT_REPONAME,,} --version
+            # docker run -ti --rm --read-only -v /tmp:/tmp -v /var/tmp:/var/tmp -v ${HOME}/data/ds105:/bids_dataset -v ${HOME}/outputs:/outputs bids/${CIRCLE_PROJECT_REPONAME,,} /bids_dataset /outputs participant_prep -k objectviewing -p 1 2
+            # docker run -ti --rm --read-only -v /tmp:/tmp -v /var/tmp:/var/tmp -v ${HOME}/data/ds105:/bids_dataset -v ${HOME}/outputs:/outputs bids/${CIRCLE_PROJECT_REPONAME,,} /bids_dataset /outputs participant_test -k objectviewing -c face house -p 1 2 -d -z
   deploy:
     machine:
       image: circleci/classic:latest
@@ -44,18 +52,14 @@ jobs:
       - run: docker load -i ~/docker/image.tar
       - run:
           command: |
-            if [ -n "$DOCKER_PASS" ]; then echo "PASSED";fi
-            echo ${CIRCLE_PROJECT_REPONAME,,}
-            if [[ -n "$DOCKER_PASS" ]]; then docker login -u $DOCKER_USER -p $DOCKER_PASS && docker push bids/${CIRCLE_PROJECT_REPONAME,,}:latest; fi
-            if [[ -n "$DOCKER_PASS" ]]; then docker login -u $DOCKER_USER -p $DOCKER_PASS && docker tag bids/${CIRCLE_PROJECT_REPONAME,,} bids/${CIRCLE_PROJECT_REPONAME,,}:latest && docker push bids/${CIRCLE_PROJECT_REPONAME,,}:latest; fi
-            #if [[ "${CIRCLE_BRANCH}" == "master" && -n "${DOCKER_PASS}" ]]; then
-            #  docker login -u ${DOCKER_USER} -p ${DOCKER_PASS}
-            #  docker push bids/pymvpa:latest
-            #  if [[ -n "${CIRCLE_TAG}" ]]; then
-            #    docker tag bids/pymvpa bids/pymvpa:latest
-            #    docker push bids/pymvpa:latest;
-            #  fi
-            #fi
+            if [[ -n "${DOCKER_PASS}" ]]; then
+              docker login -u ${DOCKER_USER} -p ${DOCKER_PASS} && \
+              docker push bids/${CIRCLE_PROJECT_REPONAME,,}:latest
+              if [[ -n "${CIRCLE_TAG}" ]]; then
+                docker tag bids/${CIRCLE_PROJECT_REPONAME,,} bids/${CIRCLE_PROJECT_REPONAME,,}:${CIRCLE_TAG}
+                docker push bids/${CIRCLE_PROJECT_REPONAME,,}:${CIRCLE_TAG};
+              fi
+            fi
 workflows:
   version: 2
   build-test-deploy:

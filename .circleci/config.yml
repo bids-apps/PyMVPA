@@ -20,6 +20,10 @@ jobs:
           paths:
             - "~/docker"
             - "~/data"
+      - persist_to_workspace:
+          root: ~/docker
+          paths:
+            - image.tar
   test:
     machine:
       image: circleci/classic:latest
@@ -34,13 +38,11 @@ jobs:
   deploy:
     machine:
       image: circleci/classic:latest
-    working_directory: ~/docker
-    #tmp
     steps:
-      #- attach_workspace:
-      - restore_cache:
-          keys:
-            - my_cache
+      - attach_workspace:
+          at: /tmp/workspace
+      - setup_remote_docker
+      - run: docker load -i /tmp/workspace/image.tar
       - run:
           command: |
             if [ -n "$DOCKER_PASS" ]; then echo "PASSED";fi

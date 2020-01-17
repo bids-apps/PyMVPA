@@ -40,9 +40,8 @@ jobs:
       image: circleci/classic:latest
     steps:
       - attach_workspace:
-          at: /tmp/workspace
-      - setup_remote_docker
-      - run: docker load -i /tmp/workspace/image.tar
+          at: ~/docker
+      - run: docker load -i ~/docker/image.tar
       - run:
           command: |
             if [ -n "$DOCKER_PASS" ]; then echo "PASSED";fi

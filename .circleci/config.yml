@@ -33,7 +33,7 @@ jobs:
             - "~/docker"
             - "~/data"
       - persist_to_workspace:
-          root: ~
+          root: ~/
           paths:
             - data/ds105
             - docker/image.tar

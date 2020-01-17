@@ -23,7 +23,7 @@ jobs:
               docker load -i ~/docker/image.tar;
             fi
             git describe --tags --always > version
-            docker build -t bids/pymvpa:latest .
+            docker build -t bids/${CIRCLE_PROJECT_REPONAME,,}:latest .
             mkdir -p ~/docker
             docker save "bids/${CIRCLE_PROJECT_REPONAME,,}:latest" > ~/docker/image.tar
             mkdir -p ${HOME}/outputs
@@ -46,14 +46,14 @@ jobs:
       - run:
           command: |
             docker run -ti --rm --read-only -v /tmp:/tmp -v /var/tmp:/var/tmp -v ${HOME}/data/ds105:/bids_dataset bids/${CIRCLE_PROJECT_REPONAME,,} --version
-            docker run -ti --rm --read-only -v /tmp:/tmp -v /var/tmp:/var/tmp -v ${HOME}/data/ds105:/bids_dataset -v ${HOME}/outputs:/outputs bids/${CIRCLE_PROJECT_REPONAME,,} /bids_dataset /outputs participant_prep -k objectviewing -p 1 2
+            #docker run -ti --rm --read-only -v /tmp:/tmp -v /var/tmp:/var/tmp -v ${HOME}/data/ds105:/bids_dataset -v ${HOME}/outputs:/outputs bids/${CIRCLE_PROJECT_REPONAME,,} /bids_dataset /outputs participant_prep -k objectviewing -p 1 2
             #docker run -ti --rm --read-only -v /tmp:/tmp -v /var/tmp:/var/tmp -v ${HOME}/data/ds105:/bids_dataset -v ${HOME}/outputs:/outputs bids/${CIRCLE_PROJECT_REPONAME,,} /bids_dataset /outputs participant_test -k objectviewing -c face house -p 1 2 -d -z
   deploy:
     machine:
       image: circleci/classic:latest
     steps:
-      - attach_workspace:
-          at: ~/docker
+      #- attach_workspace:
+      #    at: ~/docker
       - run: docker load -i ~/docker/image.tar
       - run:
           command: |

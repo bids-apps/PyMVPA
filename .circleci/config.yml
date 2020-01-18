@@ -18,6 +18,7 @@ jobs:
               pwd
               echo ${HOME}
               ls ${HOME}
+              ls ~
               ls ${HOME}/data
               ls ${HOME}/data/ds105;
             fi
@@ -37,7 +38,7 @@ jobs:
             #- "~/docker"
             #- "~/data"
       - persist_to_workspace:
-          root: ~/
+          root: ${HOME}/
           paths:
             - data
             - docker/image.tar

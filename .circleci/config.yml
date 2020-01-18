@@ -13,9 +13,13 @@ jobs:
           command: |
             if [[ -d ~/data/ds105 ]]; then
               echo "Exists!"
-              rm -r ~/data/ds105
               wget -c -O ${HOME}/ds105.tar "https://files.osf.io/v1/resources/653ew/providers/osfstorage/5b781237410f920018e5a4fc" && \
               mkdir -p ${HOME}/data && tar xf ${HOME}/ds105.tar -C ${HOME}/data;
+              pwd
+              echo ${HOME}
+              ls ${HOME}
+              ls ${HOME}/data
+              ls ${HOME}/data/ds105
             fi
       - run:
           command: |
@@ -42,7 +46,7 @@ jobs:
       image: circleci/classic:latest
     steps:
       - attach_workspace:
-          at: ~/data
+          at: ${HOME}/data
       - run:
           command: |
             echo "LISTING HERE"

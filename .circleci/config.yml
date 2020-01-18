@@ -38,7 +38,7 @@ jobs:
             #- "~/docker"
             #- "~/data"
       - persist_to_workspace:
-          root: ${HOME}/
+          root: /home/circleci
           paths:
             - data
             - docker/image.tar

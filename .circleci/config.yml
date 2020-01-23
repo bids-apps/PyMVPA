@@ -45,7 +45,7 @@ jobs:
   test:
     machine:
       image: circleci/classic:latest
-    #working_directory: /home/circleci/data
+    working_directory: /home/circleci/data
     steps:
       - attach_workspace:
           at: ${HOME}

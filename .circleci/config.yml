@@ -44,7 +44,7 @@ jobs:
   test:
     machine:
       image: circleci/classic:latest
-    working_directory: /home/circleci/data/ds105
+    #working_directory: /home/circleci/data/ds105
     steps:
       - attach_workspace:
           at: /tmp/workspace
@@ -60,8 +60,8 @@ jobs:
       image: circleci/classic:latest
     steps:
       - attach_workspace:
-          at: ~/docker
-      - run: docker load -i ~/docker/image.tar
+          at: /tmp/workspace
+      - run: docker load -i /tmp/workspace/docker/image.tar
       - run:
           command: |
             if [[ -n "${DOCKER_PASS}" ]]; then

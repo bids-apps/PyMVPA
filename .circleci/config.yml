@@ -37,11 +37,13 @@ jobs:
           command: |
             docker run -ti --rm --read-only -v /tmp/workspace/data/ds105:/bids_dataset bids/${CIRCLE_PROJECT_REPONAME,,} --version
             docker run -ti --rm --read-only \
+              -v /tmp:/tmp -v /var/tmp:/var/tmp \
               -v /tmp/workspace/data/ds105:/bids_dataset \
               -v /tmp/workspace/data/ds105/derivatives/pymvpa:/outputs \
               bids/${CIRCLE_PROJECT_REPONAME,,} \
               /bids_dataset /outputs participant_prep -k objectviewing -p 1 2
             docker run -ti --rm --read-only \
+              -v /tmp:/tmp -v /var/tmp:/var/tmp \
               -v /tmp/workspace/data/ds105:/bids_dataset \
               -v /tmp/workspace/data/ds105/derivatives/pymvpa:/outputs \
               bids/${CIRCLE_PROJECT_REPONAME,,} \

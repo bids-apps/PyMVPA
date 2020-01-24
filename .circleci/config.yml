@@ -35,7 +35,9 @@ jobs:
           at: /tmp/workspace
       - run:
           command: |
-            docker run -ti --rm --read-only -v /tmp/workspace/data/ds105:/bids_dataset bids/${CIRCLE_PROJECT_REPONAME,,} --version
+            docker run -ti --rm --read-only \
+              -v /tmp:/tmp -v /var/tmp:/var/tmp \
+              -v /tmp/workspace/data/ds105:/bids_dataset bids/${CIRCLE_PROJECT_REPONAME,,} --version
             docker run -ti --rm --read-only \
               -v /tmp:/tmp -v /var/tmp:/var/tmp \
               -v /tmp/workspace/data/ds105:/bids_dataset \

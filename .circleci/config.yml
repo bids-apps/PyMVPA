@@ -90,8 +90,8 @@ workflows:
             tags:
               only: /.*/
       - deploy:
-          #requires:
-            #- test
+          requires:
+            - build
           filters:
             tags:
               only: /.*/

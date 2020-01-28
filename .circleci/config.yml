@@ -57,7 +57,7 @@ jobs:
             #temp
   deploy:
     docker:
-      - image: docker:18.01.0-ce-git
+      - image: circleci/buildpack-deps:stretch
     #machine:
       #image: circleci/classic:latest
     steps:
@@ -90,8 +90,8 @@ workflows:
             tags:
               only: /.*/
       - deploy:
-          requires:
-            - test
+          #requires:
+            #- test
           filters:
             tags:
               only: /.*/

@@ -56,11 +56,14 @@ jobs:
             ls /tmp/workspace/data/ds105/derivatives/pymvpa/sub-2
             #temp
   deploy:
-    machine:
-      image: circleci/classic:latest
+    docker:
+      - image: docker:18.01.0-ce-git
+    #machine:
+      #image: circleci/classic:latest
     steps:
       - attach_workspace:
           at: /tmp/workspace
+      - setup_remote_docker
       - run: docker load -i /tmp/workspace/docker/image.tar
       - run:
           command: |

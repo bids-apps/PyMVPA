@@ -115,6 +115,7 @@ if args.analysis_level == "participant_prep":
         [ -d "${subjects}" ] || continue
         subj_name=$(basename $subjects)
         mkdir $out_path/$subj_name
+        ls $subjects/func/
         fslmerge -t "$out_path/$subj_name/""$subj_name""_task-""$task""_bold_space_preproc" $subjects/func/*$task*_preproc.nii.gz
         #reading dim4 values of all runs
         for runs in $path/derivatives/fmriprep/$subj_name/func/*$task*_preproc.nii.gz; do

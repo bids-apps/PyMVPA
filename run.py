@@ -195,7 +195,7 @@ elif args.analysis_level == "participant_test":
             original_events.append(current_event)
             print("CURRENT EVENT")
             print(current_event)
-        print("ORIGINAL EVENTS"
+        print("ORIGINAL EVENTS")
         print(original_events)
 
         # events and cond_attr will later be passed to fit_event_hrf_model:

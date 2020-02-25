@@ -186,6 +186,7 @@ elif args.analysis_level == "participant_test":
             if chunks[i] != 0:  # no offset for the first chunk
                 current_event['onset'] = current_event['onset'] + offsets[chunks[i] - 1]
             current_event['targets'] = targets[i]
+            print(targets[i])
             original_events.append(current_event)
 
         # events and cond_attr will later be passed to fit_event_hrf_model:

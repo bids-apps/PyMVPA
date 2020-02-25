@@ -181,13 +181,22 @@ elif args.analysis_level == "participant_test":
         for i in range(0, len(chunks)):  # we could instead use len(duration), len(onset), or len(targets)
             current_event = {}
             current_event['chunks'] = chunks[i]
+            # print("CHUNKS")
+            # print(current_event['chunks'])
             current_event['duration'] = duration[i]
+            # print("DURATIONS")
+            # print(current_event['duration'])
             current_event['onset'] = onset[i]
             if chunks[i] != 0:  # no offset for the first chunk
                 current_event['onset'] = current_event['onset'] + offsets[chunks[i] - 1]
+            # print("ONSETS")
+            # print(current_event['onset'])
             current_event['targets'] = targets[i]
-            print(targets[i])
             original_events.append(current_event)
+            print("CURRENT EVENT")
+            print(current_event)
+        print("ORIGINAL EVENTS"
+        print(original_events)
 
         # events and cond_attr will later be passed to fit_event_hrf_model:
         events = [ev for ev in original_events if ev['targets'] in args.conditions_to_classify]
@@ -283,6 +292,14 @@ elif args.analysis_level == "participant_test":
             # samples which would be tricky because of noinfolabel, we do:
             fds.sa['chnks'] = chunks_labels  # we call this sample attribute 'chnks' so later it won't be mistaken for
                                              # 'chunks' in events
+            print("PRINTING CHUNK LABELS HEREE DIRECTLY")
+            print(chunks_labels)
+            print("PRINTING CHUNK LABELS HEREE FROM FDS.SA")
+            print(fds.sa['chnks'])
+            print("PRINTING FDS.TIME")
+            print(fds.sa.time_coords)
+            print("SIZE Time")
+            print(len(fds.sa.time_coords))
             targets_labels = events2sample_attr(original_events, fds.sa.time_coords, noinfolabel=args.noinfolabel,
                                                 condition_attr='targets')
             fds.sa['trgts'] = targets_labels

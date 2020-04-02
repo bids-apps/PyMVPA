@@ -196,7 +196,7 @@ elif args.analysis_level == "participant_test":
             est = 'Condition per each Run'
 
         clf = SVM()  # SVMs come with sensitivity analyzers!
-        # feature selection is enabled
+        # feature selection is enabled -> note: our current feature selection is ANOVA-based and therefore univariate
         if args.feature_selection:
             if args.feature_selection > 1:
                 fs = 'On (selected %d features)' % args.feature_selection

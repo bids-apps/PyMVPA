@@ -20,7 +20,7 @@ def run_script(script):
         scriptfile.flush()
         subprocess.call(['/bin/bash', scriptfile.name])
 
-parser = argparse.ArgumentParser(description='BIDS PyMVPA App')
+parser = argparse.ArgumentParser(description='PyMVPA BIDS-App')
 parser.add_argument('bids_dir', help='The directory with the input dataset '
                     'formatted according to the BIDS standard.')
 parser.add_argument('output_dir', help='The directory where the output files '
@@ -29,6 +29,10 @@ parser.add_argument('analysis_level', help='Level of the analysis that will be p
                     'Multiple participant level analyses can be run independently '
                     '(in parallel) using the same output_dir.',
                     choices=['participant_prep', 'participant_test'])
+parser.add_argument('-s', '--searchlight', help='Performs a spheric searchlight analysis with s being the '
+                    'radius of the spheres. If this parameter is not provided, '
+                    'ROI-based analysis will be run. (default: 3)',
+                    nargs='?', const=3, type=int)
 parser.add_argument('-k', '--task', help='Task to analyze. This has to be specified for both '
                     'participant_prep and participant_test analysis levels.')
 parser.add_argument('-c', '--conditions_to_classify', help='Conditions to classify.',
@@ -264,109 +268,139 @@ elif args.analysis_level == "participant_test":
                                detr, norm, est, fs, cv_type)
         subj_html.write(html_str)
 
+        # ROI-based:
+        if not args.searchlight:
+            ROIs = []
+            ROIs = sorted(os.listdir(os.path.join(args.output_dir, 'masks')))
 
-        ROIs = []
-        ROIs = sorted(os.listdir(os.path.join(args.output_dir, 'masks')))
+            for ROIloop in range(0, len(ROIs)):
+                ROI_name = ROIs[ROIloop].split('.')[0]
 
-        for ROIloop in range(0, len(ROIs)):
-            ROI_name = ROIs[ROIloop].split('.')[0]
+                mask_fname = os.path.join(args.output_dir, 'masks', ROIs[ROIloop])
+                fds = fmri_dataset(samples=all_runs_bold_fname,
+                                   mask=mask_fname)
 
-            mask_fname = os.path.join(args.output_dir, 'masks', ROIs[ROIloop])
-            fds = fmri_dataset(samples=all_runs_bold_fname,
-                               mask=mask_fname)
+                # chunks_labels = events2sample_attr(original_events, fds.sa.time_coords, condition_attr='chunks')
+                # rather than using events2sample_attr (or assign_conditionlabels) to attribute chunks labels to
+                # samples which would be tricky because of noinfolabel, we do:
+                fds.sa['chnks'] = chunks_labels  # we call this sample attribute 'chnks' so later it won't be mistaken for
+                                                 # 'chunks' in events
+                targets_labels = events2sample_attr(original_events, fds.sa.time_coords, noinfolabel=args.noinfolabel,
+                                                    condition_attr='targets')
+                fds.sa['trgts'] = targets_labels
 
-            # chunks_labels = events2sample_attr(original_events, fds.sa.time_coords, condition_attr='chunks')
-            # rather than using events2sample_attr (or assign_conditionlabels) to attribute chunks labels to
-            # samples which would be tricky because of noinfolabel, we do:
-            fds.sa['chnks'] = chunks_labels  # we call this sample attribute 'chnks' so later it won't be mistaken for
-                                             # 'chunks' in events
+                # find_events won't work for this app because we consider the possibility of jittering
+                # events = find_events(targets=fds.sa.trgts, chunks=fds.sa.chnks)
+
+                # note that we will be using 'chnks' and 'trgts' sample attributes for detrending and normalization
+                # purposes, and not for cross-validation because with jittering, a lot of information
+                # will be lost that way -> events will be used rather than samples
+
+                # since our data usually stems from several different runs, the assumption of a continuous linear trend
+                # across all runs is not appropriate:
+                # poly_detrend(fds, polyord=args.poly_detrend)
+                # therefore, we do:
+                # detrending is enabled
+                if args.poly_detrend:
+                    poly_detrend(fds, polyord=args.poly_detrend, chunks_attr='chnks')
+                    # Event-related Pre-processing Is Not Event-related
+                    # some preprocessing is only meaningful when performed on the
+                    # full time series and not on the segmented event samples. An
+                    # example is detrending that typically needs to be done on the
+                    # original, continuous time series
+                # no detrending
+                else:
+                    pass
+
+                # normalization is enabled
+                if args.zscore:
+                    zscore(fds, chunks_attr='chnks', param_est=('trgts', args.zscore))
+                # no normalization
+                else:
+                    pass
+
+                # simple average-sample approach is limited to block-design with a clear
+                # temporal separation of all signals of interest, whereas HRF modeling is more suitable
+                # for experiments with fast stimulation alternation
+                evds = fit_event_hrf_model(fds,
+                                           events,  # it is perfectly fine to have events that are not synchronized with
+                                           # the TR. The labeling of events is taken from the 'events' list. Any
+                                           # attribute(s) that are also in the dicts will be assigned as
+                                           # condition labels in the output dataset
+                                           time_attr='time_coords',  # identifies at which timepoints each BOLD volume was
+                                           # acquired
+                                           condition_attr=cond_attr  # name of the event attribute with the condition
+                                           # labels. Can be a list of those (e.g. ['targets', 'chunks']) combination
+                                           # of which would constitute a condition
+                                           )
+
+                # this function behaves identical to ZScoreMapper
+                # the only difference is that the actual Z-scoring is done in-place
+                # potentially causing a significant reduction of memory demands
+                zscore(evds, chunks_attr=None)  # normalizes each feature (GLM parameters estimates for each voxel at
+                                                # this point)
+
+                ####################From Timeseries To Spatio-temporal Samples:####################
+
+                # remember, each feature is now voxel-at-time-point, so we get a chance of looking at the spatio-temporal
+                # profile of classification-relevant information in the data
+
+                sens = cv_sensana(evds)
+                sens_comb = sens.get_mapped(maxofabs_sample())  # another way to combine the sensitivity maps -> into a
+                                                                # single map. It should be noted that sensitivities can
+                                                                # not be directly compared to each other, even if they
+                                                                # stem from the same algorithm and are just computed on
+                                                                # different dataset splits. In an analysis one would have
+                                                                # to normalize them first. PyMVPA offers, for example,
+                                                                # l1_normed() and l2_normed() that can be used in
+                                                                # conjunction with FxMapper to do that as a post-processing
+                                                                # step
+                nimg = map2nifti(fds, sens_comb)
+                nimg.to_filename(os.path.join(args.output_dir, subj_name,
+                                              subj_name + '_task-' + args.task + '_' + ROI_name +
+                                              '_' + '_'.join(args.conditions_to_classify) + '_pattern.nii.gz'))
+
+                html_str = """
+                <!DOCTYPE html>
+                <html>
+                <body>
+                    <h2>ROI: %s</h2>
+                    <hr>
+                    <pre>%s</pre>
+                </body>
+                </html>
+                """
+                html_str = html_str % (ROI_name, cv_sensana.clf.ca.stats.as_string(description=True))
+                subj_html.write(html_str)
+        # Searchlight:
+        else:
+            fds = fmri_dataset(samples=all_runs_bold_fname)
+            
+            fds.sa['chnks'] = chunks_labels
             targets_labels = events2sample_attr(original_events, fds.sa.time_coords, noinfolabel=args.noinfolabel,
                                                 condition_attr='targets')
             fds.sa['trgts'] = targets_labels
-
-            # find_events won't work for this app because we consider the possibility of jittering
-            # events = find_events(targets=fds.sa.trgts, chunks=fds.sa.chnks)
-
-            # note that we will be using 'chnks' and 'trgts' sample attributes for detrending and normalization
-            # purposes, and not for cross-validation because with jittering, a lot of information
-            # will be lost that way -> events will be used rather than samples
-
-            # since our data usually stems from several different runs, the assumption of a continuous linear trend
-            # across all runs is not appropriate:
-            # poly_detrend(fds, polyord=args.poly_detrend)
-            # therefore, we do:
+            
             # detrending is enabled
             if args.poly_detrend:
                 poly_detrend(fds, polyord=args.poly_detrend, chunks_attr='chnks')
-                # Event-related Pre-processing Is Not Event-related
-                # some preprocessing is only meaningful when performed on the
-                # full time series and not on the segmented event samples. An
-                # example is detrending that typically needs to be done on the
-                # original, continuous time series
             # no detrending
             else:
                 pass
-
+            
             # normalization is enabled
             if args.zscore:
                 zscore(fds, chunks_attr='chnks', param_est=('trgts', args.zscore))
             # no normalization
             else:
                 pass
-
-            # simple average-sample approach is limited to block-design with a clear
-            # temporal separation of all signals of interest, whereas HRF modeling is more suitable
-            # for experiments with fast stimulation alternation
+            
             evds = fit_event_hrf_model(fds,
-                                       events,  # it is perfectly fine to have events that are not synchronized with
-                                       # the TR. The labeling of events is taken from the 'events' list. Any
-                                       # attribute(s) that are also in the dicts will be assigned as
-                                       # condition labels in the output dataset
-                                       time_attr='time_coords',  # identifies at which timepoints each BOLD volume was
-                                       # acquired
-                                       condition_attr=cond_attr  # name of the event attribute with the condition
-                                       # labels. Can be a list of those (e.g. ['targets', 'chunks']) combination
-                                       # of which would constitute a condition
-                                       )
-
-            # this function behaves identical to ZScoreMapper
-            # the only difference is that the actual Z-scoring is done in-place
-            # potentially causing a significant reduction of memory demands
-            zscore(evds, chunks_attr=None)  # normalizes each feature (GLM parameters estimates for each voxel at
-                                            # this point)
-
-            ####################From Timeseries To Spatio-temporal Samples:####################
-
-            # remember, each feature is now voxel-at-time-point, so we get a chance of looking at the spatio-temporal
-            # profile of classification-relevant information in the data
-
-            sens = cv_sensana(evds)
-            sens_comb = sens.get_mapped(maxofabs_sample())  # another way to combine the sensitivity maps -> into a
-                                                            # single map. It should be noted that sensitivities can
-                                                            # not be directly compared to each other, even if they
-                                                            # stem from the same algorithm and are just computed on
-                                                            # different dataset splits. In an analysis one would have
-                                                            # to normalize them first. PyMVPA offers, for example,
-                                                            # l1_normed() and l2_normed() that can be used in
-                                                            # conjunction with FxMapper to do that as a post-processing
-                                                            # step
-            nimg = map2nifti(fds, sens_comb)
-            nimg.to_filename(os.path.join(args.output_dir, subj_name,
-                                          subj_name + '_task-' + args.task + '_' + ROI_name +
-                                          '_' + '_'.join(args.conditions_to_classify) + '_pattern.nii.gz'))
-
-            html_str = """
-            <!DOCTYPE html>
-            <html>
-            <body>
-                <h2>ROI: %s</h2>
-                <hr>
-                <pre>%s</pre>
-            </body>
-            </html>
-            """
-            html_str = html_str % (ROI_name, cv_sensana.clf.ca.stats.as_string(description=True))
-            subj_html.write(html_str)
+                                       events,
+                                       time_attr='time_coords',
+                                       condition_attr=cond_attr
+                                      )
+            #continue here
 
 
         subj_html.close()

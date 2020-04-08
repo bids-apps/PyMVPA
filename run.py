@@ -411,6 +411,7 @@ elif args.analysis_level == "participant_test":
             res_std = np.std(res)
             chance_level = 0.5
             frac_lower = np.round(np.mean(sphere_errors < chance_level - 2 * res_std), 3)
+            print("HEREEEEEEEEEEE")
             print(frac_lower)
 
 

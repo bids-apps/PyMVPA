@@ -1,15 +1,16 @@
 #!/usr/bin/env python2.7
 import argparse
-import os
+import csv
 from glob import glob
+import json
+import mvpa2
+from mvpa2.suite import *
+import numpy as np
+import os
 from os import listdir
 from os.path import join
-import mvpa2
-import json
-import csv
-from mvpa2.suite import *
-import tempfile
 import subprocess
+import tempfile
 
 __version__ = open(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                 'version')).read()
@@ -400,7 +401,17 @@ elif args.analysis_level == "participant_test":
                                        time_attr='time_coords',
                                        condition_attr=cond_attr
                                       )
-            #continue here
+            zscore(evds, chunks_attr=None)
+            
+            sl = sphere_searchlight(sclf, radius=args.searchlight, postproc=mean_sample())
+            res = sl(evds)
+            
+            sphere_errors = res.samples[0]
+            res_mean = np.mean(res)
+            res_std = np.std(res)
+            chance_level = 0.5
+            frac_lower = np.round(np.mean(sphere_errors < chance_level - 2 * res_std), 3)
+            print(frac_lower)
 
 
         subj_html.close()

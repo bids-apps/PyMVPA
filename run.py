@@ -375,6 +375,8 @@ elif args.analysis_level == "participant_test":
                 subj_html.write(html_str)
         # Searchlight:
         else:
+            cv = CrossValidation(clf, NFoldPartitioner(cvtype=cv_type))
+            
             fds = fmri_dataset(samples=all_runs_bold_fname)
             
             fds.sa['chnks'] = chunks_labels
@@ -403,7 +405,7 @@ elif args.analysis_level == "participant_test":
                                       )
             zscore(evds, chunks_attr=None)
             
-            sl = sphere_searchlight(sclf, radius=args.searchlight, postproc=mean_sample())
+            sl = sphere_searchlight(cv, radius=args.searchlight, postproc=mean_sample())
             res = sl(evds)
             
             sphere_errors = res.samples[0]

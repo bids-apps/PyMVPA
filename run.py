@@ -201,46 +201,53 @@ elif args.analysis_level == "participant_test":
             est = 'Condition per each Run'
 
         clf = SVM()  # SVMs come with sensitivity analyzers!
-        # feature selection is enabled -> note: our current feature selection is ANOVA-based and therefore univariate
-        if args.feature_selection:
-            if args.feature_selection > 1:
-                fs = 'On (selected %d features)' % args.feature_selection
-                fsel = SensitivityBasedFeatureSelection(
-                    OneWayAnova(),
-                    FixedNElementTailSelector(int(args.feature_selection), mode='select', tail='upper')
-                )
-            elif args.feature_selection <= 1:
-                fs = 'On (selected %.2f%% of features)' % (args.feature_selection*100)
-                fsel = SensitivityBasedFeatureSelection(
-                    OneWayAnova(),
-                    FractionTailSelector(args.feature_selection, mode='select', tail='upper')
-                )
-            # the following approach uses the full dataset to determine which features show category differences in
-            # the whole dataset, including our supposed-to-be independent testing data (precisely constitutes the
-            # double-dipping procedure):
-            # fsel.train(evds)
-            # evds_p = fsel(evds)
-            # to implement an ANOVA-based feature selection properly we have to do it on the training dataset only:
-            clf = FeatureSelectionClassifier(clf, fsel)
-        # no feature selection
-        else:
-            fs = 'Off'
-            pass
+        
         if args.nfold_partitioner >= 1:
             cv_type = int(args.nfold_partitioner)
         else:
             cv_type = args.nfold_partitioner
-
-        # a convenient way to access the total performance of the underlying classifier, and get the sensitivities at
-        # the same time: (can effectively perform a cross-validation analysis internally)
-        sclf = SplitClassifier(clf, NFoldPartitioner(cvtype=cv_type),
-                               # exp: if cvtype=5 and the total number of runs is 12, then we'll
-                               # have C(12,5)=12!/((12-5)!*5!) ways of splitting the data, and
-                               # will have 5 runs for testing in each combination
-                               enable_ca=['stats'])
-        cv_sensana = sclf.get_sensitivity_analyzer()  # no post-processing here -> obtaining sensitivity maps from all
-                                                      # internally trained classifiers =
-                                                      # C(number of conditions_to_classify,2)*number_of_runs maps
+        
+        # ROI-based:
+        if not args.searchlight:
+            # feature selection is enabled -> note: our current feature selection is ANOVA-based and therefore univariate
+            if args.feature_selection:
+                if args.feature_selection > 1:
+                    fs = 'On (selected %d features)' % args.feature_selection
+                    fsel = SensitivityBasedFeatureSelection(
+                        OneWayAnova(),
+                        FixedNElementTailSelector(int(args.feature_selection), mode='select', tail='upper')
+                    )
+                elif args.feature_selection <= 1:
+                    fs = 'On (selected %.2f%% of features)' % (args.feature_selection*100)
+                    fsel = SensitivityBasedFeatureSelection(
+                        OneWayAnova(),
+                        FractionTailSelector(args.feature_selection, mode='select', tail='upper')
+                    )
+                # the following approach uses the full dataset to determine which features show category differences in
+                # the whole dataset, including our supposed-to-be independent testing data (precisely constitutes the
+                # double-dipping procedure):
+                # fsel.train(evds)
+                # evds_p = fsel(evds)
+                # to implement an ANOVA-based feature selection properly we have to do it on the training dataset only:
+                clf = FeatureSelectionClassifier(clf, fsel)
+            # no feature selection
+            else:
+                fs = 'Off'
+                pass
+            
+            # a convenient way to access the total performance of the underlying classifier, and get the sensitivities at
+            # the same time: (can effectively perform a cross-validation analysis internally)
+            sclf = SplitClassifier(clf, NFoldPartitioner(cvtype=cv_type),
+                                   # exp: if cvtype=5 and the total number of runs is 12, then we'll
+                                   # have C(12,5)=12!/((12-5)!*5!) ways of splitting the data, and
+                                   # will have 5 runs for testing in each combination
+                                   enable_ca=['stats'])
+            cv_sensana = sclf.get_sensitivity_analyzer()  # no post-processing here -> obtaining sensitivity maps from all
+                                                          # internally trained classifiers =
+                                                          # C(number of conditions_to_classify,2)*number_of_runs maps
+        # Searchlight:
+        else:
+            cv = CrossValidation(clf, NFoldPartitioner(cvtype=cv_type))
 
         subj_html = open(os.path.join(args.output_dir, subj_name + '.html'), 'w')
         html_str = """
@@ -375,8 +382,6 @@ elif args.analysis_level == "participant_test":
                 subj_html.write(html_str)
         # Searchlight:
         else:
-            cv = CrossValidation(clf, NFoldPartitioner(cvtype=cv_type))
-            
             fds = fmri_dataset(samples=all_runs_bold_fname)
             
             fds.sa['chnks'] = chunks_labels

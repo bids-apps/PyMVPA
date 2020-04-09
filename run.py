@@ -248,6 +248,12 @@ elif args.analysis_level == "participant_test":
         # Searchlight:
         else:
             cv = CrossValidation(clf, NFoldPartitioner(cvtype=cv_type))
+            
+            plot_args = {
+                'cmap_bg' : 'gray',
+                'cmap_overlay' : 'autumn',
+                'interactive' : cfg.getboolean('examples', 'interactive', True),
+                }
 
         subj_html = open(os.path.join(args.output_dir, subj_name + '.html'), 'w')
         html_str = """
@@ -412,6 +418,9 @@ elif args.analysis_level == "participant_test":
             
             sl = sphere_searchlight(cv, radius=args.searchlight, postproc=mean_sample())
             res = sl(evds)
+            
+            res.samples *= -1
+            res.samples += 1
             
             sphere_errors = res.samples[0]
             res_mean = np.mean(res)

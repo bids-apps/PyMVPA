@@ -247,6 +247,8 @@ elif args.analysis_level == "participant_test":
                                                           # C(number of conditions_to_classify,2)*number_of_runs maps
         # Searchlight:
         else:
+            fs = 'N/A'
+            
             cv = CrossValidation(clf, NFoldPartitioner(cvtype=cv_type))
             
             plot_args = {

@@ -391,10 +391,12 @@ elif args.analysis_level == "participant_test":
         # Searchlight:
         else:
             # hard-coded:
+            """
             mask_fname = os.path.join(args.output_dir, 'masks', 'merged.nii')
             fds = fmri_dataset(samples=all_runs_bold_fname,
                                mask=mask_fname)
-            # fds = fmri_dataset(samples=all_runs_bold_fname)
+            """
+            fds = fmri_dataset(samples=all_runs_bold_fname)
             
             fds.sa['chnks'] = chunks_labels
             targets_labels = events2sample_attr(original_events, fds.sa.time_coords, noinfolabel=args.noinfolabel,

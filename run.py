@@ -433,13 +433,13 @@ elif args.analysis_level == "participant_test":
             niftiresults.to_filename(os.path.join(args.output_dir, subj_name,
                                           subj_name + '_task-' + args.task + '_' + 'searchlight' +
                                           '_' + '_'.join(args.conditions_to_classify) + '_pattern.nii.gz'))
-            
+            """
             fig = pl.figure(figsize=(12, 4), facecolor='white')
             subfig = plot_lightbox(vlim=(0.5, None), fig=fig, **plot_args)
             pl.title('Accuracy distribution for radius %i' % args.searchlight)
             if cfg.getboolean('examples', 'interactive', True):
                 pl.show()
-            
+            """
             sphere_errors = res.samples[0]
             res_mean = np.mean(res)
             res_std = np.std(res)

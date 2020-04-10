@@ -388,7 +388,11 @@ elif args.analysis_level == "participant_test":
                 subj_html.write(html_str)
         # Searchlight:
         else:
-            fds = fmri_dataset(samples=all_runs_bold_fname)
+            # hard-coded:
+            mask_fname = os.path.join(args.output_dir, 'masks', 'merged.nii')
+            fds = fmri_dataset(samples=all_runs_bold_fname,
+                               mask=mask_fname)
+            # fds = fmri_dataset(samples=all_runs_bold_fname)
             
             fds.sa['chnks'] = chunks_labels
             targets_labels = events2sample_attr(original_events, fds.sa.time_coords, noinfolabel=args.noinfolabel,
@@ -417,15 +421,29 @@ elif args.analysis_level == "participant_test":
             zscore(evds, chunks_attr=None)
             
             sl = sphere_searchlight(cv, radius=args.searchlight, postproc=mean_sample())
+            print("Start of Searchlight")
             res = sl(evds)
-            
+            print("End of Searchlight")
+            # transforming error maps into accuracies:
             res.samples *= -1
             res.samples += 1
+            niftiresults = map2nifti(fds, res)
+            niftiresults.to_filename(os.path.join(args.output_dir, subj_name,
+                                          subj_name + '_task-' + args.task + '_' + 'searchlight' +
+                                          '_' + '_'.join(args.conditions_to_classify) + '_pattern.nii.gz'))
+            
+            fig = pl.figure(figsize=(12, 4), facecolor='white')
+            subfig = plot_lightbox(vlim=(0.5, None), fig=fig, **plot_args)
+            pl.title('Accuracy distribution for radius %i' % args.searchlight)
+            if cfg.getboolean('examples', 'interactive', True):
+                pl.show()
             
             sphere_errors = res.samples[0]
             res_mean = np.mean(res)
             res_std = np.std(res)
-            chance_level = 0.5
+            # hard-coded!
+            chance_level = 0.5 #1.0 - (1.0 / len(ds.uniquetargets))
+            # for how many spheres the error is more the two standard deviations lower than chance:
             frac_lower = np.round(np.mean(sphere_errors < chance_level - 2 * res_std), 3)
             print("HEREEEEEEEEEEE")
             print(frac_lower)

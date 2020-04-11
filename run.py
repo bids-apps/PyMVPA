@@ -427,7 +427,7 @@ elif args.analysis_level == "participant_test":
             # last thing added for test:
             # center_ids = evds.fa.nonzero()[0]
             
-            sl = sphere_searchlight(cv, radius=args.searchlight, space='voxel_indices', postproc=mean_sample())
+            sl = sphere_searchlight(cv, radius=args.searchlight, space='voxel_indices', nproc=12, postproc=mean_sample())
             print("Start of Searchlight")
             res = sl(evds)
             print("End of Searchlight")

@@ -9,7 +9,7 @@ These two files will then be used in participant_test. In addition, an empty "ma
 ### Generating Masks in FSL
 When you create a mask in FSL using 1mm or 2mm MNI atlases,
 http://andysbrainblog.blogspot.com/2012/11/creating-masks-in-fsl.html (src_img)
-you need to reslice it to match fmriprep output. Here is our way of doing this:<br /><br />
+you need to reslice to match your functionals. Here is our way of doing this:<br /><br />
 Open a terminal and start IPython:
 ```
 ipython

@@ -120,11 +120,14 @@ if args.analysis_level == "participant_prep":
         [ -d "${subjects}" ] || continue
         subj_name=$(basename $subjects)
         mkdir $out_path/$subj_name
+        echo "STEP: Merging subject $subj_name"
         fslmerge -t "$out_path/$subj_name/""$subj_name""_task-""$task""_bold_space_preproc" $subjects/func/*$task*-preproc_bold.nii.gz
+        echo "DONE: Merging subject $subj_name"
         #reading dim4 values of all runs
-        for runs in $path/derivatives/fmriprep/$subj_name/func/*$task*_preproc.nii.gz; do
+        for runs in $path/derivatives/fmriprep/$subj_name/func/*$task*-preproc_bold.nii.gz; do
             fslval $runs dim4 >> "$out_path/$subj_name/""$subj_name""_task-""$task""_dim4.txt"
         done
+        echo "DONE: $subj_name dim4.txt created"
     done
     '''
     my_bash_script = my_bash_script % (args.bids_dir, args.output_dir, args.task, ' '.join(subjects_to_analyze))

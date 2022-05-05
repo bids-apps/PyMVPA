@@ -1,9 +1,17 @@
 #!/usr/bin/env python2.7
+# for html searchlight visualization:
+import matplotlib
+matplotlib.use('Agg') # must be done before importing matplotlib.pyplot
+import matplotlib.pyplot as pl
+import base64
+from io import BytesIO
+
 import argparse
 import csv
 from glob import glob
 import json
 import mvpa2
+# replace the following line with individual imports
 from mvpa2.suite import *
 import numpy as np
 import os
@@ -11,9 +19,11 @@ from os import listdir
 from os.path import join
 import subprocess
 import tempfile
+import time
 
 __version__ = open(os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                 'version')).read()
+
 
 def run_script(script):
     with tempfile.NamedTemporaryFile() as scriptfile:
@@ -21,71 +31,74 @@ def run_script(script):
         scriptfile.flush()
         subprocess.call(['/bin/bash', scriptfile.name])
 
+
 parser = argparse.ArgumentParser(description='PyMVPA BIDS-App')
 parser.add_argument('bids_dir', help='The directory with the input dataset '
-                    'formatted according to the BIDS standard.')
+                                     'formatted according to the BIDS standard.')
 parser.add_argument('output_dir', help='The directory where the output files '
-                    'should be stored.')
+                                       'should be stored.')
 parser.add_argument('analysis_level', help='Level of the analysis that will be performed. '
-                    'Multiple participant level analyses can be run independently '
-                    '(in parallel) using the same output_dir.',
+                                           'Multiple participant level analyses can be run independently '
+                                           '(in parallel) using the same output_dir.',
                     choices=['participant_prep', 'participant_test'])
 parser.add_argument('-s', '--searchlight', help='Performs a spheric searchlight analysis with s being the '
-                    'radius of the spheres. If this parameter is not provided, '
-                    'ROI-based analysis will be run. (default: 3)',
+                                                'radius of the spheres. If this parameter is not provided, '
+                                                'ROI-based analysis will be run. (default: 3)',
                     nargs='?', const=3, type=int)
 parser.add_argument('-k', '--task', help='Task to analyze. This has to be specified for both '
-                    'participant_prep and participant_test analysis levels.')
+                                         'participant_prep and participant_test analysis levels.')
 parser.add_argument('-c', '--conditions_to_classify', help='Conditions to classify.',
                     nargs="+")
-parser.add_argument('-p', '--participant_label', help='The label(s) of the participant(s) that should be analyzed. The label '
-                    'corresponds to sub-<participant_label> from the BIDS spec '
-                    '(so it does not include "sub-"). If this parameter is not '
-                    'provided all subjects should be analyzed. Multiple '
-                    'participants can be specified with a space separated list.',
+parser.add_argument('-p', '--participant_label',
+                    help='The label(s) of the participant(s) that should be analyzed. The label '
+                         'corresponds to sub-<participant_label> from the BIDS spec '
+                         '(so it does not include "sub-"). If this parameter is not '
+                         'provided all subjects should be analyzed. Multiple '
+                         'participants can be specified with a space separated list.',
                     nargs="+")
 parser.add_argument('-l', '--noinfolabel', help='When building a sample attribute array from an event list, this will '
-                    'be the condition label to assign to all samples for which '
-                    'no stimulation condition information is contained in the events. '
-                    'For more information, look into PyMVPA\'s events2sample_attr. (default: \'rest\')',
-                    default='rest')
+                                                'be the condition label to assign to all samples for which '
+                                                'no stimulation condition information is contained in the events. '
+                                                'For more information, look into PyMVPA\'s events2sample_attr. If '
+                                                'this parameter is not provided no such labeling will be '
+                                                'performed. (default: \'rest\')',
+                    nargs='?', const='rest')
 parser.add_argument('-d', '--poly_detrend', help='Order of the Legendre polynomial to remove from the data. '
-                    'This will remove every polynomial up to and including the '
-                    'provided value. If this parameter is not provided no detrending '
-                    'will be performed. (default: 1)',
+                                                 'This will remove every polynomial up to and including the '
+                                                 'provided value. If this parameter is not provided no detrending '
+                                                 'will be performed. (default: 1)',
                     nargs='?', const=1, type=int)
 parser.add_argument('-z', '--zscore', help='Feature-wise, chunk-wise Z-scoring of the data. Scales '
-                    'all features into approximately the same range, and also removes '
-                    'their mean. The argument will specify the condition samples of '
-                    'the dataset used to estimate mean and standard deviation. If this '
-                    'parameter is not provided no normalization will be performed. (default: \'rest\')',
+                                           'all features into approximately the same range, and also removes '
+                                           'their mean. The argument will specify the condition samples of '
+                                           'the dataset used to estimate mean and standard deviation. If this '
+                                           'parameter is not provided no normalization will be performed. (default: \'rest\')',
                     nargs='?', const='rest')
 parser.add_argument('-o', '--condition_attr_onset', help='A sequence of multiple attribute names. All combinations '
-                    'of unique values of the attributes will be used as conditions in '
-                    'HRF modeling. Providing this parameter will add \'onset\' to the '
-                    'default (\'targets\', \'chunks\') so that one estimate per each '
-                    'individual event is produced (more, but noisier estimates) rather '
-                    'than a separate model for each condition for each run. This is a '
-                    'trade off between number of training samples and noise reduction.',
+                                                         'of unique values of the attributes will be used as conditions in '
+                                                         'HRF modeling. Providing this parameter will add \'onset\' to the '
+                                                         'default (\'targets\', \'chunks\') so that one estimate per each '
+                                                         'individual event is produced (more, but noisier estimates) rather '
+                                                         'than a separate model for each condition for each run. This is a '
+                                                         'trade off between number of training samples and noise reduction.',
                     action='store_true')
 parser.add_argument('-f', '--feature_selection', help='Uses an ANOVA measure to select features with the highest '
-                    'F-scores. Will perform FixedNElementTailSelector if f > 1, and '
-                    'FractionTailSelector if f < 1. If this parameter is not provided '
-                    'no feature selection will be performed.',
+                                                      'F-scores. Will perform FixedNElementTailSelector if f > 1, and '
+                                                      'FractionTailSelector if f < 1. If this parameter is not provided '
+                                                      'no feature selection will be performed.',
                     type=float)
 parser.add_argument('-t', '--nfold_partitioner', help='When performing cross-validation on a dataset with n chunks, '
-                    'with t = 1 (default), it would generate n partition sets, where '
-                    'each chunk is sequentially taken out to form a second partition, '
-                    'while all other samples together form the first partition. If t > 1, '
-                    'then all possible combinations of t number of chunks are taken out. '
-                    'If t is a float between 0 and 1, it specifies the ratio of present '
-                    'unique values to be taken.',
+                                                      'with t = 1 (default), it would generate n partition sets, where '
+                                                      'each chunk is sequentially taken out to form a second partition, '
+                                                      'while all other samples together form the first partition. If t > 1, '
+                                                      'then all possible combinations of t number of chunks are taken out. '
+                                                      'If t is a float between 0 and 1, it specifies the ratio of present '
+                                                      'unique values to be taken.',
                     default=1, type=float)
 parser.add_argument('--skip_bids_validator', help='Whether or not to perform BIDS dataset validation',
-                   action='store_true')
+                    action='store_true')
 parser.add_argument('-v', '--version', action='version',
                     version='PyMVPA BIDS-App Version {}'.format(__version__))
-
 
 args = parser.parse_args()
 
@@ -116,13 +129,13 @@ if args.analysis_level == "participant_prep":
     mkdir $out_path/masks
     sub_IDs="%s"
     for subjects in ${sub_IDs}; do
-        subjects=$path/derivatives/fmriprep/sub-$subjects
+        subjects=$path/derivatives/sub-$subjects
         [ -d "${subjects}" ] || continue
         subj_name=$(basename $subjects)
         mkdir $out_path/$subj_name
-        fslmerge -t "$out_path/$subj_name/""$subj_name""_task-""$task""_bold_space_preproc" $subjects/func/*$task*_preproc.nii.gz
+        fslmerge -t "$out_path/$subj_name/""$subj_name""_task-""$task""_bold_space_preproc" "$subjects/ses-01/func/"*"$task""_"*"-preproc_bold.nii.gz"
         #reading dim4 values of all runs
-        for runs in $path/derivatives/fmriprep/$subj_name/func/*$task*_preproc.nii.gz; do
+        for runs in "$path/derivatives/$subj_name/ses-01/func/"*"$task""_"*"-preproc_bold.nii.gz"; do
             fslval $runs dim4 >> "$out_path/$subj_name/""$subj_name""_task-""$task""_dim4.txt"
         done
     done
@@ -143,9 +156,10 @@ elif args.analysis_level == "participant_test":
         targets = []
         chunk_counter = 0
         # looping through all the runs' tsv events files
-        for filename in sorted(os.listdir(os.path.join(args.bids_dir, subj_name, 'func'))):
-            if filename.endswith(".tsv"):
-                with open(os.path.join(args.bids_dir, subj_name, 'func', filename)) as tsvfile:
+        for filename in sorted(os.listdir(os.path.join(args.bids_dir, subj_name, 'ses-01', 'func'))):
+            keyname = args.task + '_'
+            if (keyname in filename) and filename.endswith(".tsv"):
+                with open(os.path.join(args.bids_dir, subj_name, 'ses-01', 'func', filename)) as tsvfile:
                     reader = csv.DictReader(tsvfile, dialect='excel-tab')
                     for row in reader:
                         chunks.append(chunk_counter)
@@ -161,7 +175,7 @@ elif args.analysis_level == "participant_test":
         chunks_labels = []  # will be used to label samples
         chunk_counter = 0  # labeling starts from zero
         with open(
-            os.path.join(args.output_dir, subj_name, subj_name + '_task-' + args.task + '_dim4.txt')) as sips:
+                os.path.join(args.output_dir, subj_name, subj_name + '_task-' + args.task + '_dim4.txt')) as sips:
             for line in sips:
                 scan_ips_list.append(int(line))
                 for i in range(0, int(line)):
@@ -172,12 +186,12 @@ elif args.analysis_level == "participant_test":
 
         offsets = []
         for i in range(0, number_of_runs - 1):  # exp: for 5 runs, we need 4 offsets - we can also use
-                                                # len(scan_ips_list) rather than number_of_runs
+            # len(scan_ips_list) rather than number_of_runs
             if i == 0:
                 offsets.append(scan_ips_list[i] * TR)  # scan_ips_list[i] is the number of volumes in chunk i
             else:
                 offsets.append(offsets[-1] + scan_ips_list[i] * TR)  # some_list[-1] is the shortest and most Pythonic
-                                                                     # way of getting the last element of a list
+                # way of getting the last element of a list
 
         # generating a list of dictionaries
         original_events = []
@@ -193,6 +207,8 @@ elif args.analysis_level == "participant_test":
 
         # events and cond_attr will later be passed to fit_event_hrf_model:
         events = [ev for ev in original_events if ev['targets'] in args.conditions_to_classify]
+        # changed to this temporarily (regressors are here):
+        #events = [ev for ev in original_events]
         if args.condition_attr_onset:
             cond_attr = ('onset', 'targets', 'chunks')
             est = 'Individual Event'  # will be used in the html output
@@ -201,12 +217,13 @@ elif args.analysis_level == "participant_test":
             est = 'Condition per each Run'
 
         clf = SVM()  # SVMs come with sensitivity analyzers!
-        
+        # clf = LinearNuSVMC()
+
         if args.nfold_partitioner >= 1:
             cv_type = int(args.nfold_partitioner)
         else:
             cv_type = args.nfold_partitioner
-        
+
         # ROI-based:
         if not args.searchlight:
             # feature selection is enabled -> note: our current feature selection is ANOVA-based and therefore univariate
@@ -218,7 +235,7 @@ elif args.analysis_level == "participant_test":
                         FixedNElementTailSelector(int(args.feature_selection), mode='select', tail='upper')
                     )
                 elif args.feature_selection <= 1:
-                    fs = 'On (selected %.2f%% of features)' % (args.feature_selection*100)
+                    fs = 'On (selected %.2f%% of features)' % (args.feature_selection * 100)
                     fsel = SensitivityBasedFeatureSelection(
                         OneWayAnova(),
                         FractionTailSelector(args.feature_selection, mode='select', tail='upper')
@@ -234,7 +251,7 @@ elif args.analysis_level == "participant_test":
             else:
                 fs = 'Off'
                 pass
-            
+
             # a convenient way to access the total performance of the underlying classifier, and get the sensitivities at
             # the same time: (can effectively perform a cross-validation analysis internally)
             sclf = SplitClassifier(clf, NFoldPartitioner(cvtype=cv_type),
@@ -243,19 +260,39 @@ elif args.analysis_level == "participant_test":
                                    # will have 5 runs for testing in each combination
                                    enable_ca=['stats'])
             cv_sensana = sclf.get_sensitivity_analyzer()  # no post-processing here -> obtaining sensitivity maps from all
-                                                          # internally trained classifiers =
-                                                          # C(number of conditions_to_classify,2)*number_of_runs maps
+            # internally trained classifiers =
+            # C(number of conditions_to_classify,2)*number_of_runs maps
         # Searchlight:
         else:
             fs = 'N/A'
-            
+
             cv = CrossValidation(clf, NFoldPartitioner(cvtype=cv_type))
-            
+            # # changing temporarily to permutation testing:
+            # # What does the classifier have to say about the actual data,
+            # # but when it was "trained" on randomly permuted data:
+            # partitioner = NFoldPartitioner()
+            # repeater = Repeater(count=3)
+            # # only once and only for samples that were labeled as being part of the training set in a particular CV-fold:
+            # permutator = AttributePermutator('targets', limit={'partitions': 1}, count=1)
+            # null_cv = CrossValidation(
+            #     clf,
+            #     # will cause the CV to permute the training set for each CV-fold internally:
+            #     ChainNode([partitioner, permutator], space=partitioner.get_space()),
+            #     errorfx=mean_mismatch_error)
+            # distr_est = MCNullDist(repeater, tail='left', measure=null_cv,
+            #                        enable_ca=['dist_samples'])
+            # # cross-validation measure for computing the empricial performance estimate:
+            # cv = CrossValidation(clf, partitioner, errorfx=mean_mismatch_error,
+            #                      null_dist=distr_est, enable_ca=['stats'])
+
             plot_args = {
-                'cmap_bg' : 'gray',
-                'cmap_overlay' : 'autumn',
-                'interactive' : cfg.getboolean('examples', 'interactive', True),
-                }
+                'background' : os.path.join(args.bids_dir, 'derivatives/' + subj_name + '/ses-01/anat/' + subj_name + '_ses-01_space-MNI152NLin2009cAsym_desc-preproc_T1w.nii.gz'),
+                'background_mask' : os.path.join(args.bids_dir, 'derivatives/' + subj_name + '/ses-01/anat/' + subj_name + '_ses-01_space-MNI152NLin2009cAsym_desc-brain_mask.nii.gz'),
+                'do_stretch_colors' : False,
+                'cmap_bg': 'gray',
+                'cmap_overlay': 'autumn',
+                'interactive' : True,
+            }
 
         subj_html = open(os.path.join(args.output_dir, subj_name + '.html'), 'w')
         html_str = """
@@ -293,6 +330,7 @@ elif args.analysis_level == "participant_test":
                 ROI_name = ROIs[ROIloop].split('.')[0]
 
                 mask_fname = os.path.join(args.output_dir, 'masks', ROIs[ROIloop])
+                print mask_fname
                 fds = fmri_dataset(samples=all_runs_bold_fname,
                                    mask=mask_fname)
 
@@ -300,7 +338,7 @@ elif args.analysis_level == "participant_test":
                 # rather than using events2sample_attr (or assign_conditionlabels) to attribute chunks labels to
                 # samples which would be tricky because of noinfolabel, we do:
                 fds.sa['chnks'] = chunks_labels  # we call this sample attribute 'chnks' so later it won't be mistaken for
-                                                 # 'chunks' in events
+                # 'chunks' in events
                 targets_labels = events2sample_attr(original_events, fds.sa.time_coords, noinfolabel=args.noinfolabel,
                                                     condition_attr='targets')
                 fds.sa['trgts'] = targets_labels
@@ -330,7 +368,8 @@ elif args.analysis_level == "participant_test":
 
                 # normalization is enabled
                 if args.zscore:
-                    zscore(fds, chunks_attr='chnks', param_est=('trgts', args.zscore))
+                    zscore(fds, chunks_attr='chnks')
+                    #zscore(fds, chunks_attr='chnks', param_est=('trgts', args.zscore))
                 # no normalization
                 else:
                     pass
@@ -343,7 +382,8 @@ elif args.analysis_level == "participant_test":
                                            # the TR. The labeling of events is taken from the 'events' list. Any
                                            # attribute(s) that are also in the dicts will be assigned as
                                            # condition labels in the output dataset
-                                           time_attr='time_coords',  # identifies at which timepoints each BOLD volume was
+                                           time_attr='time_coords',
+                                           # identifies at which timepoints each BOLD volume was
                                            # acquired
                                            condition_attr=cond_attr  # name of the event attribute with the condition
                                            # labels. Can be a list of those (e.g. ['targets', 'chunks']) combination
@@ -354,7 +394,10 @@ elif args.analysis_level == "participant_test":
                 # the only difference is that the actual Z-scoring is done in-place
                 # potentially causing a significant reduction of memory demands
                 zscore(evds, chunks_attr=None)  # normalizes each feature (GLM parameters estimates for each voxel at
-                                                # this point)
+                # this point)
+
+                # average betas (added recently for studyforrest emotions): NOT IMPLEMENTED YET
+                # evds = evds.get_mapped(mean_group_sample(['targets', 'chunks']))
 
                 ####################From Timeseries To Spatio-temporal Samples:####################
 
@@ -363,14 +406,14 @@ elif args.analysis_level == "participant_test":
 
                 sens = cv_sensana(evds)
                 sens_comb = sens.get_mapped(maxofabs_sample())  # another way to combine the sensitivity maps -> into a
-                                                                # single map. It should be noted that sensitivities can
-                                                                # not be directly compared to each other, even if they
-                                                                # stem from the same algorithm and are just computed on
-                                                                # different dataset splits. In an analysis one would have
-                                                                # to normalize them first. PyMVPA offers, for example,
-                                                                # l1_normed() and l2_normed() that can be used in
-                                                                # conjunction with FxMapper to do that as a post-processing
-                                                                # step
+                # single map. It should be noted that sensitivities can
+                # not be directly compared to each other, even if they
+                # stem from the same algorithm and are just computed on
+                # different dataset splits. In an analysis one would have
+                # to normalize them first. PyMVPA offers, for example,
+                # l1_normed() and l2_normed() that can be used in
+                # conjunction with FxMapper to do that as a post-processing
+                # step
                 nimg = map2nifti(fds, sens_comb)
                 nimg.to_filename(os.path.join(args.output_dir, subj_name,
                                               subj_name + '_task-' + args.task + '_' + ROI_name +
@@ -390,71 +433,122 @@ elif args.analysis_level == "participant_test":
                 subj_html.write(html_str)
         # Searchlight:
         else:
-            # hard-coded:
-            """
-            mask_fname = os.path.join(args.output_dir, 'masks', 'merged.nii')
-            fds = fmri_dataset(samples=all_runs_bold_fname,
-                               mask=mask_fname)
-            """
-            fds = fmri_dataset(samples=all_runs_bold_fname)
-            
-            fds.sa['chnks'] = chunks_labels
-            targets_labels = events2sample_attr(original_events, fds.sa.time_coords, noinfolabel=args.noinfolabel,
-                                                condition_attr='targets')
-            fds.sa['trgts'] = targets_labels
-            
-            # detrending is enabled
-            if args.poly_detrend:
-                poly_detrend(fds, polyord=args.poly_detrend, chunks_attr='chnks')
-            # no detrending
-            else:
-                pass
-            
-            # normalization is enabled
-            if args.zscore:
-                zscore(fds, chunks_attr='chnks', param_est=('trgts', args.zscore))
-            # no normalization
-            else:
-                pass
-            
-            evds = fit_event_hrf_model(fds,
-                                       events,
-                                       time_attr='time_coords',
-                                       condition_attr=cond_attr
-                                      )
-            zscore(evds, chunks_attr=None)
-            
-            # last thing added for test:
-            # center_ids = evds.fa.nonzero()[0]
-            
-            sl = sphere_searchlight(cv, radius=args.searchlight, space='voxel_indices', nproc=1, postproc=mean_sample())
-            print("Start of Searchlight")
-            res = sl(evds)
-            print("End of Searchlight")
-            # transforming error maps into accuracies:
-            res.samples *= -1
-            res.samples += 1
-            niftiresults = map2nifti(fds, res)
-            niftiresults.to_filename(os.path.join(args.output_dir, subj_name,
-                                          subj_name + '_task-' + args.task + '_' + 'searchlight' +
-                                          '_' + '_'.join(args.conditions_to_classify) + '_pattern.nii.gz'))
-            """
-            fig = pl.figure(figsize=(12, 4), facecolor='white')
-            subfig = plot_lightbox(vlim=(0.5, None), fig=fig, **plot_args)
-            pl.title('Accuracy distribution for radius %i' % args.searchlight)
-            if cfg.getboolean('examples', 'interactive', True):
-                pl.show()
-            """
-            sphere_errors = res.samples[0]
-            res_mean = np.mean(res)
-            res_std = np.std(res)
-            # hard-coded!
-            chance_level = 0.5 #1.0 - (1.0 / len(ds.uniquetargets))
-            # for how many spheres the error is more the two standard deviations lower than chance:
-            frac_lower = np.round(np.mean(sphere_errors < chance_level - 2 * res_std), 3)
-            print("HEREEEEEEEEEEE")
-            print(frac_lower)
+            print("SEARCHLIGHT!")
+            ROIs = []
+            ROIs = sorted(os.listdir(os.path.join(args.output_dir, 'masks')))
 
+            for ROIloop in range(0, len(ROIs)):
+                ROI_name = ROIs[ROIloop].split('.')[0]
+
+                mask_fname = os.path.join(args.output_dir, 'masks', ROIs[ROIloop])
+                print mask_fname
+                fds = fmri_dataset(samples=all_runs_bold_fname,
+                                   mask=mask_fname)
+                # fds = fmri_dataset(samples=all_runs_bold_fname)
+                # for extracting GSR:
+                ##########Disabling for the Tone Scramble project##########
+                # print("SUBJECT NAME:")
+                # print(subj_name)
+                # mask_fname = os.path.join(args.output_dir, 'masks',
+                #                          subj_name + '_wm.nii')
+                # fds_wm = fmri_dataset(samples=all_runs_bold_fname,
+                #                      mask=mask_fname)
+                # global_signal = []
+                # for smpl in range(0, fds_wm.shape[0]):
+                #    global_signal.append(np.mean(fds_wm.samples[smpl,:]))
+                # fds.sa['gsr'] = global_signal
+
+                fds.sa['chnks'] = chunks_labels
+                targets_labels = events2sample_attr(original_events, fds.sa.time_coords, noinfolabel=args.noinfolabel,
+                                                    condition_attr='targets')
+                fds.sa['trgts'] = targets_labels
+
+                # detrending is enabled
+                if args.poly_detrend:
+                    poly_detrend(fds, polyord=args.poly_detrend, chunks_attr='chnks')
+                # no detrending
+                else:
+                    pass
+
+                # normalization is enabled
+                if args.zscore:
+                    # changed to param_est to None so that all samples will be used for parameter estimation
+                    zscore(fds, chunks_attr='chnks')
+                    # zscore(fds, chunks_attr='chnks', param_est=('trgts', args.zscore))
+                # no normalization
+                else:
+                    pass
+                # remove here?!:
+                # fds = fds[np.array([l in args.conditions_to_classify
+                #                            for l in fds.sa.trgts], dtype='bool')]
+                evds = fit_event_hrf_model(fds,
+                                           events,
+                                           time_attr='time_coords',
+                                           condition_attr=cond_attr
+                                           # regr_attrs=['gsr'] #removed for the Tone Scramble analysis
+                                           )
+
+                # Inclusion of the additional regressor will not alter the beta-estimate of the hrf predictor,
+                # but simply remove variance from the residual, which in turn will improve the statistics
+
+                # changing so z-scoring happens within one run
+                zscore(evds, chunks_attr=None)
+                # zscore(evds, chunks_attr='chunks')
+
+                # average betas: NOT IMPLEMENTED YET
+                # evds = evds.get_mapped(mean_group_sample(['targets', 'chunks']))
+
+                # print("Conditions:")
+                # print evds.sa.targets
+                # evds = evds[np.array([l in args.conditions_to_classify
+                #                      for l in evds.targets], dtype='bool')]
+                # print("Classification Conditions:")
+                # print evds.sa.targets
+
+                # last thing added for test:
+                # center_ids = evds.fa.nonzero()[0]
+
+                # determines local neighborhoods -> space='voxel_indices'
+
+                sl = sphere_searchlight(cv, radius=args.searchlight, space='voxel_indices', nproc=15,
+                                        postproc=mean_sample())
+                print("Searchlight Started!")
+                start_time = time.time()
+                res = sl(evds)
+                print res.shape
+                print("--- %s seconds ---" % (time.time() - start_time))
+                print("Searchlight Ended!")
+                # transforming error maps into accuracies:
+                res.samples *= -1
+                res.samples += 1
+
+                niftiresults = map2nifti(fds, res)
+                niftiresults.to_filename(os.path.join(args.output_dir, subj_name,
+                                                      subj_name + '_task-' + args.task + '_searchlight-' + str(args.searchlight) +
+                                                      '_pattern-' + '-'.join(args.conditions_to_classify) + '.nii.gz'))
+                # Here goes plotting figures:
+                fig = pl.figure(figsize=(60, 60), facecolor='white')
+                subfig = plot_lightbox(overlay=niftiresults,
+                                       vlim=(None, None),
+                                       fig=fig, **plot_args)
+                pl.title('Accuracy Distribution for Radius %i' % args.searchlight)
+
+                # html visualization:
+                tmpfile = BytesIO()
+                pl.savefig(tmpfile, format='png')
+                encoded = base64.b64encode(tmpfile.getvalue()).decode('utf-8')
+                html_pct = '<img src=\'data:image/png;base64,{}\'>'.format(encoded)
+                subj_html.write(html_pct)
+                # Plotting ends here
+
+                sphere_errors = res.samples[0]
+                res_mean = np.mean(res)
+                res_std = np.std(res)
+                # hard-coded!
+                chance_level = 0.5  # 1.0 - (1.0 / len(ds.uniquetargets))
+                # for how many spheres the error is more the two standard deviations lower than chance:
+                frac_lower = np.round(np.mean(sphere_errors < chance_level - 2 * res_std), 3)
+                print(frac_lower)
 
         subj_html.close()
 

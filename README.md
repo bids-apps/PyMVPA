@@ -2,14 +2,14 @@
 This pipeline is developed by Sajjad Torabian at Stanford University for use at the Center for Reproducible Neuroscience (CRN), as well as for open-source software distribution.<br /><br />
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1343531.svg)](https://doi.org/10.5281/zenodo.1343531)
 ## Description
-This pipeline takes fMRI data and generates ROI based MultiVariate Pattern Analysis (MVPA) outputs (detailed classification results + visualized patterns) using functionality from FSL and PyMVPA. Before running PyMVPA BIDS, you need to (ideally) preprocess data using fmriprep. When you're ready, run the app at its two analysis levels in order:
+This pipeline takes fMRI data and generates ROI based & Searchlight MultiVariate Pattern Analysis (MVPA) results (detailed classification results + visualized patterns), and also runs Representational Similarity Analysis (RSA) using functionality from FSL and PyMVPA. Before running PyMVPA BIDS, you need to (ideally) preprocess data using fmriprep. When you're ready, run the app at its two analysis levels in order:
 - **participant_prep**: For each subject, takes preprocessed functional runs from fmriprep under derivatives, and concatenates them into single NIfTI files (e.g. sub-1_task-objectviewing_bold_space_preproc.nii.gz) that will be placed in separate subject folders under the output folder (e.g. /bids_dataset/derivatives/pymvpa) specified by the user. It also creates a text file (e.g. sub-1_task-objectviewing_dim4.txt) next to each NIfTI for each subject which is a list containing all the runs' number of time points.<br /><br />
 These two files will then be used in participant_test. In addition, an empty "masks" folder under the output folder (in our example: /bids_dataset/derivatives/pymvpa/masks) is created in this step which before getting to participant_test should be filled with NIfTI ROIs that you want MVPA to run on. If you don't have your masks already and want to know how to generate one, please read the "Generating Masks in FSL" section below.<br /><br />
 - **participant_test**: For each subject, iterates through all the ROIs inside the "masks" folder and performs SVM classification over HRF modeling of specified conditions. It generates HTML outputs containing detailed classification results, plus visualized patterns (e.g. /bids_dataset/derivatives/pymvpa/sub-1/sub-1_task-objectviewing_Occipital_Fusiform_Gyrus_face_house_pattern.nii.gz).
 ### Generating Masks in FSL
 When you create a mask in FSL using 1mm or 2mm MNI atlases,
 http://andysbrainblog.blogspot.com/2012/11/creating-masks-in-fsl.html (src_img)
-you need to reslice to match your functionals. Here is our way of doing this:<br /><br />
+you might need to reslice to match your functionals. Here is our way of doing this:<br /><br />
 Open a terminal and start IPython:
 ```
 ipython

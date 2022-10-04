@@ -1,36 +1,29 @@
-# PyMVPA BIDS App
-This pipeline is developed by Sajjad Torabian at Stanford University for use at the Center for Reproducible Neuroscience (CRN), as well as for open-source software distribution.<br /><br />
+# PyMVPA BIDS-App
+This pipeline is developed at Stanford University and University of California, Irvine, for open-source software distribution.<br /><br />
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1343531.svg)](https://doi.org/10.5281/zenodo.1343531)
 ## Description
-This pipeline takes fMRI data and generates ROI based & Searchlight MultiVariate Pattern Analysis (MVPA) results (detailed classification results + visualized patterns), and also runs Representational Similarity Analysis (RSA) using functionality from FSL and PyMVPA. Before running PyMVPA BIDS, you need to (ideally) preprocess data using fmriprep. When you're ready, run the app at its two analysis levels in order:
-- **participant_prep**: For each subject, takes preprocessed functional runs from fmriprep under derivatives, and concatenates them into single NIfTI files (e.g. sub-1_task-objectviewing_bold_space_preproc.nii.gz) that will be placed in separate subject folders under the output folder (e.g. /bids_dataset/derivatives/pymvpa) specified by the user. It also creates a text file (e.g. sub-1_task-objectviewing_dim4.txt) next to each NIfTI for each subject which is a list containing all the runs' number of time points.<br /><br />
-These two files will then be used in participant_test. In addition, an empty "masks" folder under the output folder (in our example: /bids_dataset/derivatives/pymvpa/masks) is created in this step which before getting to participant_test should be filled with NIfTI ROIs that you want MVPA to run on. If you don't have your masks already and want to know how to generate one, please read the "Generating Masks in FSL" section below.<br /><br />
-- **participant_test**: For each subject, iterates through all the ROIs inside the "masks" folder and performs SVM classification over HRF modeling of specified conditions. It generates HTML outputs containing detailed classification results, plus visualized patterns (e.g. /bids_dataset/derivatives/pymvpa/sub-1/sub-1_task-objectviewing_Occipital_Fusiform_Gyrus_face_house_pattern.nii.gz).
+This pipeline takes fMRI data and generates ROI-based & searchlight MultiVariate Pattern Analysis (MVPA) results (including visualized patterns), and also runs Representational Similarity Analysis (RSA) using functionality from PyMVPA. Before running PyMVPA BIDS-App, data needs to be pre-processed using fMRIPrep. The following describes two analysis levels of this app:
+- **Participant Prep**: For each subject, takes preprocessed functional images from fmriprep, and concatenates them into a single NIfTI file that will be placed under the subject folder in the output directory (/bids_dataset/derivatives/pymvpa/sub-ID). It also creates a text file next to each NIfTI for each subject which contains a list of numbers showing the number of time points in each run.<br /><br />
+In addition, an empty "masks" folder under the output folder (/bids_dataset/derivatives/pymvpa/masks) is created at this step which should be filled with NIfTI ROIs before moving to the next step. The "Generating Masks in FSL" section below demonstrates how to generate such masks.<br /><br />
+- **Participant Test**: For each subject, iterates through all the ROIs inside the "masks" folder and performs SVM classification, or generates Representational Dissimilarity Matrices (RDM). This step reports results through HTML outputs for each subject, together with visualized patterns in the NIfTI format.
 ### Generating Masks in FSL
-When you create a mask in FSL using 1mm or 2mm MNI atlases,
-http://andysbrainblog.blogspot.com/2012/11/creating-masks-in-fsl.html (src_img)
-you might need to reslice to match your functionals. Here is our way of doing this:<br /><br />
-Open a terminal and start IPython:
-```
-ipython
-```
-In IPython:
+<a href="http://andysbrainblog.blogspot.com/2012/11/creating-masks-in-fsl.html">Here</a> is one approach to creating masks in FSL. If the resolution of your masks doesn't match your functional images, you might need to reslice the masks. Here is one way to do this:<br /><br />
+In Python, import the following:
 ```
 from nilearn.image import resample_to_img
 import nibabel as nib
 ```
-Next, it is time to load your source (image to resample) and target (reference image taken for resampling) images:
+Next, it's time to load your source (mask) and target (functional) images:
 ```
-src_img = nib.load('Temporal_Occipital_Fusiform_Cortex.nii')
-trgt_img = nib.load('sub-1_task-objectviewing_run-01_bold_space-MNI152NLin2009cAsym_preproc.nii') # this could be any of the preprocessed NIfTIs
+src_img = nib.load('mask_name.nii')
+trgt_img = nib.load('sub-1_task-tsk_run-01_bold_space-MNI152NLin2009cAsym_preproc.nii') # using the first run here
 output = resample_to_img(src_img, trgt_img, interpolation='nearest')
-output.to_filename('Temporal_Occipital_Fusiform_Cortex.nii') # used the same name to replace
+output.to_filename('mask_name.nii')
 ```
 ### More on MVPA
 Usually at least 8 runs is needed for MVPA analysis. You may also have two really long runs with long rest periods in the middle so that each run can be cut into pieces. The important point is that you need to make sure the chunks remain independent, or analyze data in a way to make them independent!<br /><br />
-Also, the number of data points for conditions should be about the same.
 ## Documentation
-For more information on PyMVPA, please visit http://www.pymvpa.org/, or look into the "Usage" section and comments inside run.py!
+For more information on PyMVPA, please visit http://www.pymvpa.org/, or look into the "Usage" section.
 ## How to report errors
 For issues or questions, please post to the PyMVPA mailing list (http://www.pymvpa.org/support.html), the BIDS mailing list (https://groups.google.com/forum/#!forum/bids-discussion), or NeuroStars (https://neurostars.org/) with pymvpa tag
 ## Acknowledgements
@@ -39,7 +32,7 @@ Please cite as:<br />
 sajjadtorabian. (2018, August 10). sajjadtorabian/PyMVPA: PyMVPA BIDS App version v1.0.0 (Version v1.0.0). Zenodo.
 http://doi.org/10.5281/zenodo.1343531
 ## Usage
-This App has the following command line arguments:
+The following shows the command line arguments of PyMPVA BIDS-App:
 ```
 usage: run.py [-h] [-k TASK]
               [-c CONDITIONS_TO_CLASSIFY [CONDITIONS_TO_CLASSIFY ...]]
@@ -138,5 +131,5 @@ docker run -i --rm \
 	bids/pymvpa \
 	/bids_dataset /outputs participant_test -k objectviewing -c face house -p 1 2 -d -z
 ```
-## Special considerations
-Note that the app concatenates functional runs into a single NIfTI for each subject (in participant_prep) which is in the order of GB and will then be fed into participant_test. So make sure your RAM is ready for that!
+## Special Considerations
+Note that functional runs get concatenated into single NIfTI files for each subject, so be mindful of your memory capacity.

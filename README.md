@@ -122,19 +122,19 @@ optional arguments:
                         Whether or not to perform BIDS dataset validation
   -v, --version         show program's version number and exit
 ```
-To run it in participant_prep level mode (for participants 1 and 2):
+The following shows how to run the app in prep mode for an "objectviewing" task and participants 1 & 2:
 ```
 docker run -i --rm \
-	-v /Users/Sajjad/Visual_object_recognition:/bids_dataset:ro \
-	-v /Users/Sajjad/Visual_object_recognition/derivatives/pymvpa:/outputs \
+	-v [path to BIDS root]:/bids_dataset:ro \
+	-v [path to BIDS root/derivatives/pymvpa]:/outputs \
 	bids/pymvpa \
 	/bids_dataset /outputs participant_prep -k objectviewing -p 1 2
 ```
-To run it in participant_test level mode (should use the same output folder as above):
+And, here is how to run the app in test mode, for the classification of "face"s versus "house"s, with detrending of time-series and z-scoring applied. Note that the same output folder as above should be used:
 ```
 docker run -i --rm \
-	-v /Users/Sajjad/Visual_object_recognition:/bids_dataset:ro \
-	-v /Users/Sajjad/Visual_object_recognition/derivatives/pymvpa:/outputs \
+	-v [path to BIDS root]:/bids_dataset:ro \
+	-v [path to BIDS root/derivatives/pymvpa]:/outputs \
 	bids/pymvpa \
 	/bids_dataset /outputs participant_test -k objectviewing -c face house -p 1 2 -d -z
 ```

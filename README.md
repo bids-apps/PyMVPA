@@ -3,7 +3,7 @@ This pipeline is developed at Stanford University and University of California, 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1343531.svg)](https://doi.org/10.5281/zenodo.1343531)
 ## Description
 This pipeline takes fMRI data and generates ROI-based & searchlight MultiVariate Pattern Analysis (MVPA) results (including visualized patterns), and also runs Representational Similarity Analysis (RSA) using functionality from PyMVPA. Before running PyMVPA BIDS-App, data needs to be pre-processed using fMRIPrep. The following describes two analysis levels of this app:
-- **Participant Prep**: For each subject, takes preprocessed functional images from fmriprep, and concatenates them into a single NIfTI file that will be placed under the subject folder in the output directory (/bids_dataset/derivatives/pymvpa/sub-ID). It also creates a text file next to each NIfTI for each subject which contains a list of numbers showing the number of time points in each run.<br /><br />
+- **Participant Prep**: For each subject, takes pre-processed functional images from fMRIPrep, and concatenates them into a single NIfTI file that will be placed under the subject folder in the output directory (/bids_dataset/derivatives/pymvpa/sub-ID). It also creates a text file next to each NIfTI for each subject which contains a list of numbers showing the number of time points in each run.<br /><br />
 In addition, an empty "masks" folder under the output folder (/bids_dataset/derivatives/pymvpa/masks) is created at this step which should be filled with NIfTI ROIs before moving to the next step. The "Generating Masks in FSL" section below demonstrates how to generate such masks.<br /><br />
 - **Participant Test**: For each subject, iterates through all the ROIs inside the "masks" folder and performs SVM classification, or generates Representational Dissimilarity Matrices (RDM). This step reports results through HTML outputs for each subject, together with visualized patterns in the NIfTI format.
 ### Generating Masks in FSL
@@ -25,14 +25,14 @@ Usually at least 8 runs is needed for MVPA analysis. You may also have two reall
 ## Documentation
 For more information on PyMVPA, please visit http://www.pymvpa.org/, or look into the "Usage" section.
 ## How to report errors
-For issues or questions, please post to the PyMVPA mailing list (http://www.pymvpa.org/support.html), the BIDS mailing list (https://groups.google.com/forum/#!forum/bids-discussion), or NeuroStars (https://neurostars.org/) with pymvpa tag
+For issues or questions, please post to the PyMVPA mailing list (http://www.pymvpa.org/support.html), the BIDS mailing list (https://groups.google.com/forum/#!forum/bids-discussion), or NeuroStars (https://neurostars.org/) with `pymvpa` tag
 ## Acknowledgements
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1343531.svg)](https://doi.org/10.5281/zenodo.1343531)<br /><br />
 Please cite as:<br />
 sajjadtorabian. (2018, August 10). sajjadtorabian/PyMVPA: PyMVPA BIDS App version v1.0.0 (Version v1.0.0). Zenodo.
 http://doi.org/10.5281/zenodo.1343531
 ## Usage
-The following shows the command line arguments of PyMPVA BIDS-App:
+The following shows the command line arguments of PyMVPA BIDS-App:
 ```
 usage: run.py [-h] [-k TASK]
               [-c CONDITIONS_TO_CLASSIFY [CONDITIONS_TO_CLASSIFY ...]]

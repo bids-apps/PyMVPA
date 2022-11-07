@@ -128,21 +128,21 @@ optional arguments:
                         Skipping BIDS validation
   -v, --version         show program's version number and exit
 ```
-The following shows how to run the app in prep mode for an "objectviewing" task and participants 1 & 2:
+The following shows how to run the app in prep mode for task "objectviewing" of participants 1 & 2:
 ```
 docker run -i --rm \
 	-v [path to BIDS root]:/bids_dataset:ro \
 	-v [path to BIDS root/derivatives/pymvpa]:/outputs \
 	bids/pymvpa \
-	/bids_dataset /outputs participant_prep -k objectviewing -p 1 2
+	/bids_dataset /outputs participant_prep -p 1 2 -t objectviewing
 ```
-And, here is how to run the app in test mode, for the classification of "face"s versus "house"s, with detrending of time-series and z-scoring applied. Note that the same output folder as above should be used:
+And, here is how to run the app in test mode, for the classification of "face"s versus "house"s, with z-scoring of time-series applied. Note that the same output folder as above should be used:
 ```
 docker run -i --rm \
 	-v [path to BIDS root]:/bids_dataset:ro \
 	-v [path to BIDS root/derivatives/pymvpa]:/outputs \
 	bids/pymvpa \
-	/bids_dataset /outputs participant_test -k objectviewing -c face house -p 1 2 -d -z
+	/bids_dataset /outputs participant_test -p 1 2 -t objectviewing -c face house --zscore
 ```
 ## Special Considerations
 Note that functional runs get concatenated into single NIfTI files for each subject, so be mindful of your memory capacity.

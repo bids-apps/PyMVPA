@@ -34,85 +34,98 @@ http://doi.org/10.5281/zenodo.1343531
 ## Usage
 The following shows the command line arguments of PyMVPA BIDS-App:
 ```
-usage: run.py [-h] [-k TASK]
+usage: run.py [-h] [-p PARTICIPANT_ID [PARTICIPANT_ID ...]] [-s [SESSION]]
+              [--searchlight [SEARCHLIGHT]] [-t TASK]
               [-c CONDITIONS_TO_CLASSIFY [CONDITIONS_TO_CLASSIFY ...]]
-              [-p PARTICIPANT_LABEL [PARTICIPANT_LABEL ...]] [-l NOINFOLABEL]
-              [-d [POLY_DETREND]] [-z [ZSCORE]] [-o] [-f FEATURE_SELECTION]
-              [-t NFOLD_PARTITIONER] [--skip_bids_validator] [-v]
+              [--noinfolabel [NOINFOLABEL]] [--poly_detrend [POLY_DETREND]]
+              [--zscore [ZSCORE]] [-i] [-f FEATURE_SELECT] [--cvtype CVTYPE]
+              [--lss] [--rsa] [--surf] [--space [{fsnative,fsaverage}]]
+              [--hemi [{l,r}]] [--mask MASK]
+              [--dist [{correlation,euclidean,mahalanobis}]] [--nproc [NPROC]]
+              [--skip_bids_validator] [-v]
               bids_dir output_dir {participant_prep,participant_test}
 
-BIDS PyMVPA App
+PyMVPA BIDS-App
 
 positional arguments:
-  bids_dir              The directory with the input dataset formatted
-                        according to the BIDS standard.
-  output_dir            The directory where the output files should be stored.
+  bids_dir              The input directory with dataset formatted according
+                        to BIDS standard.
+  output_dir            The directory that will store outputs.
   {participant_prep,participant_test}
                         Level of the analysis that will be performed. Multiple
-                        participant level analyses can be run independently
-                        (in parallel) using the same output_dir.
+                        analyses can run independently in parallel.
 
 optional arguments:
   -h, --help            show this help message and exit
-  -k TASK, --task TASK  Task to analyze. This has to be specified for both
+  -p PARTICIPANT_ID [PARTICIPANT_ID ...], --participant_id PARTICIPANT_ID [PARTICIPANT_ID ...]
+                        Subjects (specified by ID) that will be analyzed. The
+                        ID corresponds to sub-<participant_id> from BIDS
+                        specification. If specific IDs are not provided, all
+                        subjects will be analyzed. Multiple subjects can be
+                        specified by a space separated list.
+  -s [SESSION], --session [SESSION]
+                        Session ID for multi-session datasets.
+  --searchlight [SEARCHLIGHT]
+                        Performs searchlight analysis with s being the radius
+                        of spheres/discs in volumetric/surface mode. If this
+                        flag is not enabled, ROI-based analysis will run.
+                        (default: 3.0)
+  -t TASK, --task TASK  Task to analyze. This has to be specified for both
                         participant_prep and participant_test analysis levels.
   -c CONDITIONS_TO_CLASSIFY [CONDITIONS_TO_CLASSIFY ...], --conditions_to_classify CONDITIONS_TO_CLASSIFY [CONDITIONS_TO_CLASSIFY ...]
                         Conditions to classify.
-  -p PARTICIPANT_LABEL [PARTICIPANT_LABEL ...], --participant_label PARTICIPANT_LABEL [PARTICIPANT_LABEL ...]
-                        The label(s) of the participant(s) that should be
-                        analyzed. The label corresponds to
-                        sub-<participant_label> from the BIDS spec (so it does
-                        not include "sub-"). If this parameter is not provided
-                        all subjects should be analyzed. Multiple participants
-                        can be specified with a space separated list.
-  -l NOINFOLABEL, --noinfolabel NOINFOLABEL
+  --noinfolabel [NOINFOLABEL]
                         When building a sample attribute array from an event
-                        list, this will be the condition label to assign to
-                        all samples for which no stimulation condition
-                        information is contained in the events. For more
-                        information, look into PyMVPA's events2sample_attr.
-                        (default: 'rest')
-  -d [POLY_DETREND], --poly_detrend [POLY_DETREND]
-                        Order of the Legendre polynomial to remove from the
-                        data. This will remove every polynomial up to and
-                        including the provided value. If this parameter is not
-                        provided no detrending will be performed. (default: 1)
-  -z [ZSCORE], --zscore [ZSCORE]
-                        Feature-wise, chunk-wise Z-scoring of the data. Scales
-                        all features into approximately the same range, and
-                        also removes their mean. The argument will specify the
-                        condition samples of the dataset used to estimate mean
-                        and standard deviation. If this parameter is not
-                        provided no normalization will be performed. (default:
-                        'rest')
-  -o, --condition_attr_onset
-                        A sequence of multiple attribute names. All
-                        combinations of unique values of the attributes will
-                        be used as conditions in HRF modeling. Providing this
-                        parameter will add 'onset' to the default ('targets',
-                        'chunks') so that one estimate per each individual
-                        event is produced (more, but noisier estimates) rather
-                        than a separate model for each condition for each run.
-                        This is a trade off between number of training samples
-                        and noise reduction.
-  -f FEATURE_SELECTION, --feature_selection FEATURE_SELECTION
-                        Uses an ANOVA measure to select features with the
-                        highest F-scores. Will perform
-                        FixedNElementTailSelector if f > 1, and
+                        list, this will be assigned to all samples with no
+                        label. For more information, check PyMVPA's
+                        events2sample_attr. (default: 'rest')
+  --poly_detrend [POLY_DETREND]
+                        Order of Legendre polynomial to remove from the data.
+                        This will remove every polynomial up to and including
+                        the provided value. If this parameter is not provided
+                        no detrending will be performed. (default: 1)
+  --zscore [ZSCORE]     Feature-wise, run-wise z-scoring of time-series.
+                        Scales all features into approximately the same range,
+                        and removes their mean. If this parameter is not
+                        provided no normalization will be performed.
+  -i, --indiv_trials    When (HRF) modeling the time-series, enabling this
+                        flag will estimate betas per individual trials, rather
+                        than per condition per run. This provides more but
+                        noisier estimates. A trade off between the number of
+                        training samples and noise reduction should be made by
+                        the user.
+  -f FEATURE_SELECT, --feature_select FEATURE_SELECT
+                        Uses ANOVA to select features with highest F-scores.
+                        Will perform FixedNElementTailSelector if f > 1, and
                         FractionTailSelector if f < 1. If this parameter is
                         not provided no feature selection will be performed.
-  -t NFOLD_PARTITIONER, --nfold_partitioner NFOLD_PARTITIONER
-                        When performing cross-validation on a dataset with n
-                        chunks, with t = 1 (default), it would generate n
-                        partition sets, where each chunk is sequentially taken
-                        out to form a second partition, while all other
-                        samples together form the first partition. If t > 1,
-                        then all possible combinations of t number of chunks
-                        are taken out. If t is a float between 0 and 1, it
-                        specifies the ratio of present unique values to be
-                        taken.
+  --cvtype CVTYPE       When running cross-validation on a dataset with n
+                        runs, with cvtype = 1 (default), n partition sets will
+                        be generated, where each run is sequentially left out
+                        to form one partition, with all other runs forming the
+                        other partition together. If cvtype > 1, all possible
+                        combinations of cvtype number of runs are left out.
+  --lss                 Enabling this parameter will run GLM in a Least
+                        Squares Single (LSS) fashion. Default is Ordinary
+                        Least Squares (OLS).
+  --rsa                 Enabling this parameter will run Representational
+                        Similarity Analysis. Default is classification.
+  --surf                Enabling this parameter will run analyses on surface.
+                        Default is volumetric.
+  --space [{fsnative,fsaverage}]
+                        Surface space of analysis. Options are fsnative or
+                        fsaverage.
+  --hemi [{l,r}]        Hemisphere of analysis. Need to specify for surface.
+                        Options are l (left) or r (right).
+  --mask MASK           NIfTI mask used for both ROI-based analysis and
+                        searchlight.
+  --dist [{correlation,euclidean,mahalanobis}]
+                        Distance metric to use for Representational
+                        Dissimilarity Matrices (RDM). Choices are correlation
+                        (default), euclidean, and mahalanobis.
+  --nproc [NPROC]       Number of CPUs to use (default: 8).
   --skip_bids_validator
-                        Whether or not to perform BIDS dataset validation
+                        Skipping BIDS validation
   -v, --version         show program's version number and exit
 ```
 The following shows how to run the app in prep mode for an "objectviewing" task and participants 1 & 2:

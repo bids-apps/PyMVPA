@@ -1,4 +1,7 @@
 version: 2
+orbs:
+  docker: circleci/docker@2.1.4
+
 jobs:
   build:
     machine:

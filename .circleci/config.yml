@@ -58,7 +58,6 @@ jobs:
             ls /tmp/workspace/data/ds105/derivatives
             ls /tmp/workspace/data/ds105/derivatives/pymvpa
             ls /tmp/workspace/data/ds105/derivatives/pymvpa/sub-1
-            ls /tmp/workspace/data/ds105/derivatives/pymvpa/sub-2
   deploy:
     docker:
       - image: circleci/buildpack-deps:stretch

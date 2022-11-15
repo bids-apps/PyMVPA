@@ -1,4 +1,5 @@
-FROM bids/base_fsl
+# Use Ubuntu 20.04 LTS
+FROM ubuntu:focal-20210416
 
 MAINTAINER Sajjad Torabian <torabiansajjad@gmail.com>
 

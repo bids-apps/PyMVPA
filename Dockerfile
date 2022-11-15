@@ -1,5 +1,5 @@
-# Use Ubuntu 20.04 LTS
-FROM ubuntu:focal-20210416
+# Use Ubuntu 18.04 LTS (compatible with python-mvpa2 package)
+FROM ubuntu:18.04
 
 MAINTAINER Sajjad Torabian <torabiansajjad@gmail.com>
 

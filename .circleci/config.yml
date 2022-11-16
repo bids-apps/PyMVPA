@@ -48,13 +48,13 @@ jobs:
               -v /tmp/workspace/data/ds105:/bids_dataset \
               -v /tmp/workspace/data/ds105/derivatives/pymvpa:/outputs \
               bids/${CIRCLE_PROJECT_REPONAME,,} \
-              /bids_dataset /outputs participant_prep -p 1 -t objectviewing
+              /bids_dataset /outputs participant_prep -p 1 -t objectviewing --skip_bids_validator
             docker run -ti --rm --read-only \
               -v /tmp:/tmp -v /var/tmp:/var/tmp \
               -v /tmp/workspace/data/ds105:/bids_dataset \
               -v /tmp/workspace/data/ds105/derivatives/pymvpa:/outputs \
               bids/${CIRCLE_PROJECT_REPONAME,,} \
-              /bids_dataset /outputs participant_test -p 1 -t objectviewing -c face house --zscore
+              /bids_dataset /outputs participant_test -p 1 -t objectviewing -c face house --zscore --skip_bids_validator
             ls /tmp/workspace/data/ds105/derivatives
             ls /tmp/workspace/data/ds105/derivatives/pymvpa
             ls /tmp/workspace/data/ds105/derivatives/pymvpa/sub-1

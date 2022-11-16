@@ -3,6 +3,24 @@ FROM ubuntu:18.04
 
 MAINTAINER Sajjad Torabian <torabiansajjad@gmail.com>
 
+# Prepare environment
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+                    apt-utils \
+                    autoconf \
+                    build-essential \
+                    bzip2 \
+                    ca-certificates \
+                    curl \
+                    git \
+                    libtool \
+                    lsb-release \
+                    netbase \
+                    pkg-config \
+                    unzip \
+                    xvfb && \
+    apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
 # FSL 6.0.5.1
 RUN apt-get update -qq \
     && apt-get install -y -q --no-install-recommends \

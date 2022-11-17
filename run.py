@@ -440,35 +440,36 @@ elif args.analysis_level == "participant_test":
 
         print("NIfTI Dataset:")
         print(runallnii)
+        
+        if args.surf:
+            if session_id == None:
+                addr = os.path.join(args.bids_dir, 'derivatives', subj_name, 'func')
+            else:
+                addr = os.path.join(args.bids_dir, 'derivatives', subj_name, 'ses-' + session_id, 'func')
+            if args.hemi == 'r':
+                hemisphere = 'hemi-' + 'R'
+            else:
+                hemisphere = 'hemi-' + 'L'
+            runallgii = []
+            for filename in sorted(os.listdir(addr)):
+                keyname = args.task + '_'
+                if (keyname in filename) and filename.endswith(args.space + "_bold.func.gii") and (hemisphere in filename):
+                    currgii = giiread(os.path.join(addr, filename))
+                    runallgii.append(currgii)
+            runallgii = md.vstack((runallgii))
 
-        if session_id == None:
-            addr = os.path.join(args.bids_dir, 'derivatives', subj_name, 'func')
-        else:
-            addr = os.path.join(args.bids_dir, 'derivatives', subj_name, 'ses-' + session_id, 'func')
-        if args.hemi == 'r':
-            hemisphere = 'hemi-' + 'R'
-        else:
-            hemisphere = 'hemi-' + 'L'
-        runallgii = []
-        for filename in sorted(os.listdir(addr)):
-            keyname = args.task + '_'
-            if (keyname in filename) and filename.endswith(args.space + "_bold.func.gii") and (hemisphere in filename):
-                currgii = giiread(os.path.join(addr, filename))
-                runallgii.append(currgii)
-        runallgii = md.vstack((runallgii))
+            runallgii.sa['time_coords'] = runallnii.sa.time_coords
+            # runallgii.fa['node_indices'] = np.arange(runallgii.shape[1], dtype=int)
+            # Matteo Visconti's approach: (check if equal to the above)
+            runallgii.fa['node_indices'] = np.arange(runallgii.nfeatures) # ONLY IF DATA NOT MASKED
 
-        runallgii.sa['time_coords'] = runallnii.sa.time_coords
-        # runallgii.fa['node_indices'] = np.arange(runallgii.shape[1], dtype=int)
-        # Matteo Visconti's approach: (check if equal to the above)
-        runallgii.fa['node_indices'] = np.arange(runallgii.nfeatures) # ONLY IF DATA NOT MASKED
+            runallgii.sa['chnks'] = chunks_labels
+            targets_labels = events2sample_attr(original_events, runallgii.sa.time_coords, noinfolabel=args.noinfolabel,
+                                                condition_attr='targets')
+            runallgii.sa['trgts'] = targets_labels
 
-        runallgii.sa['chnks'] = chunks_labels
-        targets_labels = events2sample_attr(original_events, runallgii.sa.time_coords, noinfolabel=args.noinfolabel,
-                                            condition_attr='targets')
-        runallgii.sa['trgts'] = targets_labels
-
-        print("GIfTI Dataset:")
-        print(runallgii)
+            print("GIfTI Dataset:")
+            print(runallgii)
 
         if not args.surf:
             tsdata = runallnii # time-series data -> might want to use .copy(deep=T/F)

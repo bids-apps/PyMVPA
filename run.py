@@ -175,9 +175,9 @@ if args.analysis_level == "participant_prep":
             echo "Multi-session"
             addr="ses-""$sess""/func/"
         fi
-        fslmerge -t "$out_path/$subj_name/""$subj_name""_task-""$task""_desc-preproc_bold" "$subjects/""$addr"*"$task""_"*"-preproc_bold.nii.gz"
+        fslmerge -t "$out_path/$subj_name/""$subj_name""_task-""$task""_desc-preproc_bold" "$subjects/$addr"*"$task"_*"-preproc_bold.nii.gz"
         #reading dim4 values of all runs
-        for runs in "$path/derivatives/$subj_name/""$addr"*"$task""_"*"-preproc_bold.nii.gz"; do
+        for runs in "$path/derivatives/$subj_name/$addr"*"$task"_*"-preproc_bold.nii.gz"; do
             fslval $runs dim4 >> "$out_path/$subj_name/""$subj_name""_task-""$task""_dim4.txt"
         done
     done

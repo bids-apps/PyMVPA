@@ -92,7 +92,7 @@ workflows:
           context:
           - dockerhub
           requires:
-            - build
+            - test
           filters:
             tags:
               only: /.*/

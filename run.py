@@ -79,11 +79,14 @@ parser.add_argument('--poly_detrend', help='Order of Legendre polynomial to remo
                                                  'value. If this parameter is not provided no detrending will '
                                                  'be performed. (default: 1)',
                     nargs='?', const=1, type=int)
-parser.add_argument('--zscore', help='Feature-wise, run-wise z-scoring of time-series. Scales '
+parser.add_argument('--tzscore', help='Feature-wise, run-wise z-scoring of time-series. Scales '
                                            'all features into approximately the same range, and removes '
                                            'their mean. If this parameter is not provided no normalization '
                                            'will be performed.',
-                    nargs='?')
+                    action='store_true')
+parser.add_argument('--bzscore', help='Feature-wise z-scoring of GLM beta estimates across '
+                                           'all runs.',
+                    action='store_true')
 parser.add_argument('-i', '--indiv_trials', help='When (HRF) modeling the time-series, enabling this flag '
                                                          'will estimate betas per individual trials, rather than per '
                                                          'condition per run. This provides more but noisier estimates. '
@@ -404,7 +407,7 @@ elif args.analysis_level == "participant_test":
         </html>
         """
         detr = 'On (polyord=%d)' % args.poly_detrend if args.poly_detrend else 'Off'
-        norm = 'On' if args.zscore else 'Off'
+        norm = 'On' if args.tzscore else 'Off'
         html_str = html_str % (subj_name, number_of_runs, args.task, args.noinfolabel,
                                detr, norm, est, fs, cv_type)
         subj_html.write(html_str)
@@ -509,7 +512,7 @@ elif args.analysis_level == "participant_test":
             pass
 
         # normalization is enabled
-        if args.zscore:
+        if args.tzscore:
             zscore(tsdata, chunks_attr='chnks') # This function behaves identical to ZScoreMapper. The only difference
                                                 # is that z-scoring here is done in-place, potentially causing a
                                                 # significant reduction of memory demands
@@ -581,15 +584,15 @@ elif args.analysis_level == "participant_test":
         ########################################################################
 
         # order of trials gets mixed from this point -> should sort
-
+        
+        if args.bzscore:
+            print("Beta z-scoring enabled")
+            # zscore(evds, chunks_attr='chunks')
+            zscore(evds, chunks_attr=None)
+        else:
+            print("Beta z-scoring disabled")
+        
         if args.rsa:
-            # only for RSA, as there is no SVM classification with built-in z-scoring,
-            # we'd want to z-score betas:
-            if args.zscore:
-                zscore(evds, chunks_attr='chunks')
-            else:
-                pass
-
             print('Ordering...')
             counter = 0
             for ord in stim_order:

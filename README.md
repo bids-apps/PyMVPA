@@ -52,13 +52,13 @@ http://doi.org/10.5281/zenodo.1343531
 The following shows the command line arguments of PyMVPA BIDS-App:
 
 ```
-usage: run.py [-h] [-p PARTICIPANT_ID [PARTICIPANT_ID ...]] [-s [SESSION]]
+usage: run.py [-h] [-p PARTICIPANT_ID [PARTICIPANT_ID ...]] [-s SESSION]
               [--searchlight [SEARCHLIGHT]] [-t TASK]
               [-c CONDITIONS_TO_CLASSIFY [CONDITIONS_TO_CLASSIFY ...]]
               [--noinfolabel [NOINFOLABEL]] [--poly_detrend [POLY_DETREND]]
-              [--zscore [ZSCORE]] [-i] [-f FEATURE_SELECT] [--cvtype CVTYPE]
-              [--lss] [--rsa] [--surf] [--space [{fsnative,fsaverage}]]
-              [--hemi [{l,r}]] [--mask MASK]
+              [--tzscore] [--bzscore] [-i] [-f FEATURE_SELECT]
+              [--cvtype CVTYPE] [--lss] [--rsa] [--surf]
+              [--space [{fsnative,fsaverage}]] [--hemi [{l,r}]] [--mask MASK]
               [--dist [{correlation,euclidean,mahalanobis}]] [--nproc [NPROC]]
               [--skip_bids_validator] [-v]
               bids_dir output_dir {participant_prep,participant_test}
@@ -81,13 +81,13 @@ optional arguments:
                         specification. If specific IDs are not provided, all
                         subjects will be analyzed. Multiple subjects can be
                         specified by a space separated list.
-  -s [SESSION], --session [SESSION]
+  -s SESSION, --session SESSION
                         Session ID for multi-session datasets.
   --searchlight [SEARCHLIGHT]
                         Performs searchlight analysis with s being the radius
                         of spheres/discs in volumetric/surface mode. If this
                         flag is not enabled, ROI-based analysis will run.
-                        (default: 3.0)
+                        (default: 5.0)
   -t TASK, --task TASK  Task to analyze. This has to be specified for both
                         participant_prep and participant_test analysis levels.
   -c CONDITIONS_TO_CLASSIFY [CONDITIONS_TO_CLASSIFY ...], --conditions_to_classify CONDITIONS_TO_CLASSIFY [CONDITIONS_TO_CLASSIFY ...]
@@ -102,10 +102,12 @@ optional arguments:
                         This will remove every polynomial up to and including
                         the provided value. If this parameter is not provided
                         no detrending will be performed. (default: 1)
-  --zscore [ZSCORE]     Feature-wise, run-wise z-scoring of time-series.
+  --tzscore             Feature-wise, run-wise z-scoring of time-series.
                         Scales all features into approximately the same range,
                         and removes their mean. If this parameter is not
                         provided no normalization will be performed.
+  --bzscore             Feature-wise z-scoring of GLM beta estimates across
+                        all runs.
   -i, --indiv_trials    When (HRF) modeling the time-series, enabling this
                         flag will estimate betas per individual trials, rather
                         than per condition per run. This provides more but
@@ -162,7 +164,7 @@ docker run -i --rm \
 	-v [path to BIDS root]:/bids_dataset:ro \
 	-v [path to BIDS root/derivatives/pymvpa]:/outputs \
 	bids/pymvpa \
-	/bids_dataset /outputs participant_test -p 1 2 -t objectviewing -c face house --zscore
+	/bids_dataset /outputs participant_test -p 1 2 -t objectviewing -c face house --bzscore
 ```
 
 ## Special Considerations

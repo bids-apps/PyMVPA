@@ -3,6 +3,10 @@
 This pipeline is developed at Stanford University and University of California, Irvine, for open-source software distribution.<br /><br />
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1343531.svg)](https://doi.org/10.5281/zenodo.1343531)
 
+## Citation
+
+Please cite Torabian et al. (2023) [<a href="https://www.frontiersin.org/articles/10.3389/fnins.2023.1233416/full">paper</a>]
+
 ## Description
 
 This pipeline takes fMRI data and generates ROI-based & searchlight MultiVariate Pattern Analysis (MVPA) results (including visualized patterns), and also runs Representational Similarity Analysis (RSA) using functionality from PyMVPA. Before running PyMVPA BIDS-App, data needs to be pre-processed using fMRIPrep. 
@@ -34,15 +38,11 @@ output.to_filename('mask_name.nii')
 
 Usually at least 8 runs is needed for MVPA analysis. You may also have two really long runs with long rest periods in the middle so that each run can be cut into pieces. The important point is that you need to make sure the chunks remain independent, or analyze data in a way to make them independent!<br /><br />
 ## Documentation
-For more information on PyMVPA, please visit http://www.pymvpa.org/, or look into the "Usage" section.
+For more information on PyMVPA, please visit http://www.pymvpa.org/, or look into the "Usage" section below.
 
 ## How to report errors
 
 For issues or questions, please post to the PyMVPA mailing list (http://www.pymvpa.org/support.html), the BIDS mailing list (https://groups.google.com/forum/#!forum/bids-discussion), or NeuroStars (https://neurostars.org/) with `pymvpa` tag
-
-## Citation
-
-Please cite Torabian et al. (2023) [<a href="https://www.frontiersin.org/articles/10.3389/fnins.2023.1233416/full">paper</a>]
 
 ## Usage
 

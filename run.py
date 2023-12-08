@@ -161,8 +161,7 @@ if args.analysis_level == "participant_prep":
     path=%s
     out_path=%s
     task=%s
-    mkdir $out_path
-    mkdir $out_path/masks
+    mkdir -p $out_path/masks
     sub_IDs="%s"
     sess=%s
     for subjects in ${sub_IDs}; do

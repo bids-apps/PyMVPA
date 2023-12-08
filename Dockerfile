@@ -117,6 +117,10 @@ RUN apt-get update && \
     apt-get install -y python-mvpa2 && \
     apt-get remove -f -y --purge fuse
 
+# Add bids-validator
+RUN npm install -g svgo@^3.0.4 bids-validator@^1.13.1 && \
+    rm -r ~/.npm
+
 RUN mkdir -p /code
 
 COPY run.py /code/run.py

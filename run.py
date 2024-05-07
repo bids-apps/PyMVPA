@@ -593,20 +593,20 @@ elif args.analysis_level == "participant_test":
             print("Beta z-scoring disabled")
         
         if args.rsa:
-            print('Ordering...')
-            counter = 0
-            for ord in stim_order:
-                for srch in evds: # does this change evds too? deepcopy?
-                    if srch.sa.targets == ord:
-                        if counter == 0:
-                            sorted_evds = srch
-                        else:
-                            sorted_evds = md.vstack((sorted_evds, srch))
-                        # sorted_evds[counter] = srch
-                        # sorted_evds[counter] = srch.copy(deep=True, sa=None, fa=None, a=None)
-                        counter = counter + 1
-                        break
-            # evds = sorted_evds
+            print('Ordering...') # temporarily disabled for tests
+            # counter = 0
+            # for ord in stim_order:
+            #     for srch in evds: # does this change evds too? deepcopy?
+            #         if srch.sa.targets == ord:
+            #             if counter == 0:
+            #                 sorted_evds = srch
+            #             else:
+            #                 sorted_evds = md.vstack((sorted_evds, srch))
+            #             # sorted_evds[counter] = srch
+            #             # sorted_evds[counter] = srch.copy(deep=True, sa=None, fa=None, a=None)
+            #             counter = counter + 1
+            #             break
+            # # evds = sorted_evds
         # before running classification (ROI-based/searchlight - both volume and surface), remove unwanted conditions:
         else:
             evds = evds[np.array([l in args.conditions_to_classify
@@ -628,10 +628,10 @@ elif args.analysis_level == "participant_test":
             if args.rsa:
                 print('ROI-based RSA is running...')
                 mtgs = mean_group_sample(['targets'])
-                mtds = sorted_evds.get_mapped(mtgs) # might never use
+                # mtds = sorted_evds.get_mapped(mtgs) # might never use
 
                 mtcgs = mean_group_sample(['targets', 'chunks'])
-                mtcds = sorted_evds.get_mapped(mtcgs)
+                # mtcds = sorted_evds.get_mapped(mtcgs)
 
 
                 if args.dist == 'correlation':
@@ -644,7 +644,9 @@ elif args.analysis_level == "participant_test":
                     dsm = rsa.PDist(square=True, pairwise_metric='mahalanobis') #   mahalanobis distance
                     RDM_title = 'Mahalanobis'
 
-                distances = dsm(sorted_evds) # <Dataset: #oftrialsx#oftrials@float64, <sa: chunks,onset,regressors,targets>>
+                # distances = dsm(sorted_evds) # <Dataset: #oftrialsx#oftrials@float64, <sa: chunks,onset,regressors,targets>>
+                # temporary change for testing:
+                distances = dsm(evds) # <Dataset: #oftrialsx#oftrials@float64, <sa: chunks,onset,regressors,targets>>
                 dist_mat = np.matrix(distances.samples)
                 # dist_mat = 1-dist_mat  # changes distance to correlation r = 1-d
 
